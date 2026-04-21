@@ -347,6 +347,70 @@ main { padding-top: 100px; }
   .wf-heading .wf-char { opacity: 1; transform: none; animation: none; }
 }
 
+/* ── CARD STREAM ───────────────────────────────────────────── */
+:root {
+  --card-h-desktop: 400px;
+  --card-h-mobile: 240px;
+  --gap-desktop: 40px;
+  --gap-mobile: 16px;
+}
+
+.card-stream {
+  position: relative;
+  width: 100vw;
+  height: var(--card-h-desktop);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.card-line {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-desktop);
+  white-space: nowrap;
+  cursor: grab;
+  user-select: none;
+  transform: translate3d(0,0,0);
+  touch-action: pan-y;
+  overscroll-behavior-x: contain;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-line.working { will-change: transform; }
+.card-line:active,
+.card-line.dragging { cursor: grabbing; }
+
+.card-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  height: var(--card-h-desktop);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  height: 100%;
+  width: var(--card-w, 260px);
+  min-width: 140px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-image: var(--bg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transition: transform .25s ease, filter .25s ease, box-shadow .25s ease;
+}
+
+@media (max-width: 767.98px) {
+  .card-stream  { height: var(--card-h-mobile); }
+  .card-wrapper { height: var(--card-h-mobile); }
+  .card-line    { gap: var(--gap-mobile); }
+}
+
 /* ── PROJECTS ──────────────────────────────────────────────── */
 .projects-section {
   max-width: var(--max-w);

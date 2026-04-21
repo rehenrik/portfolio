@@ -176,8 +176,251 @@ function renderFallbackProjects(grid) {
   });
 }
 
+// ── Card Stream ──────────────────────────────────────────────
+class CardStreamController {
+  constructor() {
+    this.container = document.getElementById("cardStream");
+    this.cardLine  = document.getElementById("cardLine");
+    if (!this.container || !this.cardLine) return;
+
+    this.position = 0;
+    this.velocity = 120;
+    this.direction = -1;
+    this.isAnimating = true;
+    this.isDragging  = false;
+    this.lastTime = performance.now();
+    this.lastPointerX = 0;
+    this.mouseVelocity = 0;
+    this.friction = 0.95;
+    this.minVelocity = 30;
+    this.gapPx = 40;
+
+    const BASE = 'https://rehenrik.design/wp-content/uploads';
+    this.cards = [
+      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: "Bubble" },
+      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: "Cosmos Control Deck" },
+      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: "MG4" },
+      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: "Nodes" },
+      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: "EasyTax" },
+      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: "Design" },
+      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: "Elevate" },
+      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: "Cards" },
+      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: "Powerhouse" },
+      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: "Beneath the Surface" },
+      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: "Finance" },
+      { src: `${BASE}/2025/09/floratil.webp`,                  label: "Floratil" }
+    ];
+
+    this.dimCache = new Map();
+    this.io = this.makeObserver();
+    this.init();
+  }
+
+  makeObserver() {
+    return new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const card = entry.target;
+        const src  = card.dataset.bg;
+        if (!src) { this.io.unobserve(card); return; }
+
+        card.style.setProperty('--bg', `url("${src}")`);
+
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => {
+          const w = img.naturalWidth  || 1600;
+          const h = img.naturalHeight || 1000;
+          this.dimCache.set(src, { w, h });
+          this.applyWidthFromRatio(card, w, h);
+        };
+        img.onerror = () => {
+          card.style.setProperty('--bg', this.placeholderBG());
+          this.applyWidthFromRatio(card, 1600, 1000);
+        };
+        img.src = src;
+        this.io.unobserve(card);
+      });
+    }, { root: this.container, rootMargin: '200px' });
+  }
+
+  init() {
+    this.populate();
+    this.updateCardWidths();
+    this.setupEventListeners();
+    this.animate();
+  }
+
+  populate() {
+    this.cardLine.innerHTML = "";
+    for (let i = 0; i < 30; i++) {
+      const item = this.cards[i % this.cards.length];
+      this.cardLine.appendChild(this.createCard(item));
+    }
+  }
+
+  createCard(item) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "card-wrapper";
+    const card = document.createElement("div");
+    card.className = "card";
+    card.setAttribute("role", "img");
+    if (item.label) card.setAttribute("aria-label", item.label);
+    card.style.setProperty('--bg', this.placeholderBG());
+    card.dataset.bg = item.src;
+    this.io.observe(card);
+    wrapper.appendChild(card);
+    return wrapper;
+  }
+
+  updateCardWidths() {
+    this.cardLine.querySelectorAll(".card-wrapper").forEach(wrap => {
+      const card  = wrap.firstElementChild;
+      const h     = parseFloat(getComputedStyle(wrap).height) || 240;
+      const bg    = card.dataset.bg || '';
+      const meta  = this.dimCache.get(bg);
+      const ratio = meta ? (meta.w / meta.h) : (16 / 10);
+      const width = Math.max(140, Math.round(h * ratio));
+      card.style.setProperty("--card-w", width + "px");
+    });
+  }
+
+  applyWidthFromRatio(card, w, h) {
+    const wrap  = card.parentElement;
+    const hh    = parseFloat(getComputedStyle(wrap).height) || 240;
+    const width = Math.max(140, Math.round(hh * (w / h)));
+    card.style.setProperty("--card-w", width + "px");
+  }
+
+  placeholderBG() {
+    const c = document.createElement('canvas');
+    c.width = 32; c.height = 20;
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 32, 20);
+    g.addColorStop(0, '#0f172a');
+    g.addColorStop(1, '#1e293b');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 32, 20);
+    return `url("${c.toDataURL()}")`;
+  }
+
+  setupEventListeners() {
+    const updateGap = () => {
+      const g = getComputedStyle(this.cardLine).gap || "40px";
+      this.gapPx = parseFloat(g) || 40;
+    };
+    updateGap();
+
+    let resizeRaf = null;
+    window.addEventListener("resize", () => {
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => this.updateCardWidths());
+      updateGap();
+    });
+
+    this.cardLine.addEventListener("mousedown",  (e) => this.startDrag(e), { passive: false });
+    document.addEventListener("mousemove",       (e) => this.onDrag(e),    { passive: false });
+    document.addEventListener("mouseup",         ()  => this.endDrag());
+    this.cardLine.addEventListener("touchstart", (e) => this.startDrag(e), { passive: false });
+    document.addEventListener("touchmove",       (e) => this.onDrag(e),    { passive: false });
+    document.addEventListener("touchend",        ()  => this.endDrag());
+    document.addEventListener("touchcancel",     ()  => this.endDrag());
+  }
+
+  getClientX(evt) {
+    if (evt.touches && evt.touches.length)               return evt.touches[0].clientX;
+    if (evt.changedTouches && evt.changedTouches.length) return evt.changedTouches[0].clientX;
+    return evt.clientX;
+  }
+
+  startDrag(e) {
+    e.preventDefault();
+    this.isDragging  = true;
+    this.isAnimating = true;
+    this.cardLine.classList.add("dragging", "working");
+    this.lastPointerX  = this.getClientX(e);
+    this.mouseVelocity = 0;
+    const t = getComputedStyle(this.cardLine).transform;
+    if (t !== "none") this.position = new DOMMatrix(t).m41;
+  }
+
+  onDrag(e) {
+    if (!this.isDragging) return;
+    e.preventDefault();
+    const x  = this.getClientX(e);
+    const dx = x - this.lastPointerX;
+    this.lastPointerX  = x;
+    this.position     += dx;
+    this.mouseVelocity = dx * 60;
+    this.applyTransform();
+    this.recycleIfNeeded();
+  }
+
+  endDrag() {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    this.cardLine.classList.remove("dragging");
+    const speed    = Math.abs(this.mouseVelocity);
+    this.velocity  = speed > 0 ? Math.max(this.minVelocity, speed) : this.minVelocity;
+    this.direction = this.mouseVelocity > 0 ? 1 : -1;
+    if (this.velocity <= this.minVelocity) this.cardLine.classList.remove("working");
+  }
+
+  animate() {
+    const now = performance.now();
+    const dt  = (now - this.lastTime) / 1000;
+    this.lastTime = now;
+
+    if (this.isAnimating && !this.isDragging) {
+      if (this.velocity > this.minVelocity) {
+        this.velocity *= this.friction;
+      } else {
+        this.velocity = Math.max(this.minVelocity, this.velocity);
+        this.cardLine.classList.remove("working");
+      }
+      this.position += this.velocity * this.direction * dt;
+      this.applyTransform();
+      this.recycleIfNeeded();
+    }
+    requestAnimationFrame(() => this.animate());
+  }
+
+  applyTransform() {
+    this.cardLine.style.transform = `translate3d(${this.position}px,0,0)`;
+  }
+
+  recycleIfNeeded() {
+    const c = this.container.getBoundingClientRect();
+
+    let first = this.cardLine.firstElementChild;
+    while (first) {
+      const r = first.getBoundingClientRect();
+      if (r.right < c.left) {
+        const compensate = r.width + this.gapPx;
+        this.cardLine.appendChild(first);
+        this.position += compensate;
+        this.applyTransform();
+        first = this.cardLine.firstElementChild;
+      } else break;
+    }
+
+    let last = this.cardLine.lastElementChild;
+    while (last) {
+      const r = last.getBoundingClientRect();
+      if (r.left > c.right) {
+        const compensate = r.width + this.gapPx;
+        this.cardLine.prepend(last);
+        this.position -= compensate;
+        this.applyTransform();
+        last = this.cardLine.lastElementChild;
+      } else break;
+    }
+  }
+}
+
 // ── Init ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  new CardStreamController();
   loadProjects();
 
   // Animate hero elements
