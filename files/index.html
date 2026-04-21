@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name – Visual & Product Designer</title>
+  <meta name="description" content="Visual and Product Designer shaping intuitive experiences." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <header class="nav">
+    <a href="/" class="nav-logo">YN</a>
+    <nav class="nav-links">
+      <a href="/" class="active">Work</a>
+      <a href="about.html">About</a>
+      <a href="playground.html">Playground</a>
+      <a href="mailto:rehenrik@outlook.com">Contact</a>
+    </nav>
+    <button class="nav-menu-btn" aria-label="Menu">☰</button>
+  </header>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="mobile-close" id="mobileClose">✕</button>
+    <nav>
+      <a href="/">Work</a>
+      <a href="about.html">About</a>
+      <a href="playground.html">Playground</a>
+      <a href="mailto:rehenrik@outlook.com">Contact</a>
+    </nav>
+  </div>
+  <div class="mobile-overlay" id="mobileOverlay"></div>
+
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+      <p class="hero-eyebrow">Visual & Product Designer</p>
+      <h1 class="hero-title">Shaping<br/><em>intuitive</em><br/>experiences</h1>
+      <p class="hero-sub">A multifaceted designer with over 10 years of agency experience,<br/>focused on purposeful, balanced user interfaces.</p>
+      <div class="hero-cta">
+        <a href="mailto:rehenrik@outlook.com" class="btn-primary">Let's talk</a>
+        <a href="mailto:rehenrik@outlook.com" class="hero-email">rehenrik@outlook.com</a>
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION -->
+    <section class="projects-section">
+      <div class="section-header">
+        <h2>Turning ideas into<br/><em>usable</em> Designs</h2>
+        <p>Projects that simplify complexity and improve how people interact.</p>
+      </div>
+
+      <!-- Projects loaded from Supabase -->
+      <div class="projects-grid" id="projectsGrid">
+        <!-- Skeleton loaders -->
+        <div class="project-card skeleton"></div>
+        <div class="project-card skeleton"></div>
+        <div class="project-card skeleton"></div>
+      </div>
+    </section>
+
+    <!-- ABOUT SNIPPET -->
+    <section class="about-section">
+      <div class="about-text-col">
+        <h2>Designing<br/>with <em>depth</em></h2>
+        <p>Just me, turning sketches and clicks into experiences that feel alive.</p>
+        <div class="about-body">
+          <p>I grew up in São Paulo, and since I was little, drawing has been a part of my life. In my childhood, I started playing around with Photoshop, and there I discovered a new way to explore creativity. Today, it is in design that I have found my path to transform ideas into something real.</p>
+          <a href="about.html" class="btn-ghost">A short summary →</a>
+        </div>
+        <div class="about-body" style="margin-top:2rem">
+          <p>I focus on designing interfaces that are not only clean and intuitive, but also enjoyable to use. Alongside that, I build strong and scalable Design Systems that give teams consistency.</p>
+          <a href="playground.html" class="btn-ghost">Explore Playground →</a>
+        </div>
+      </div>
+      <div class="about-images-col">
+        <div class="about-img-stack">
+          <div class="about-img-placeholder img-tall"></div>
+          <div class="about-img-placeholder img-short"></div>
+          <div class="about-img-placeholder img-wide"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="skills-section">
+      <h2>Skills I'm <em>confident</em> in</h2>
+      <div class="skills-grid">
+        <div class="skill-item">UX/UI Design</div>
+        <div class="skill-item">Design Systems</div>
+        <div class="skill-item">Prototyping</div>
+        <div class="skill-item">Visual Design</div>
+        <div class="skill-item">Product Strategy</div>
+        <div class="skill-item">User Research</div>
+        <div class="skill-item">Accessibility</div>
+        <div class="skill-item">Handoff</div>
+        <div class="skill-item">Figma</div>
+        <div class="skill-item">Motion Design</div>
+      </div>
+    </section>
+
+    <!-- CLIENTS MARQUEE -->
+    <section class="clients-section">
+      <h2>I've helped create products powering<br/><em>leading</em> companies</h2>
+      <div class="marquee-wrapper">
+        <div class="marquee-track" id="marqueeTrack">
+          <span class="client-name">Baldan</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Dimensa</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Férias & Co.</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Floratil</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Iugu</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Minha Biblioteca</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Serasa Experian</span>
+          <span class="client-sep">·</span>
+          <!-- duplicate for infinite scroll -->
+          <span class="client-name">Baldan</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Dimensa</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Férias & Co.</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Floratil</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Iugu</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Minha Biblioteca</span>
+          <span class="client-sep">·</span>
+          <span class="client-name">Serasa Experian</span>
+          <span class="client-sep">·</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact-section">
+      <h2>I'd love to<br/><em>talk</em> to you</h2>
+      <p>Whether you've got a project in mind, a question, or just want to say hi.</p>
+      <div class="contact-cta">
+        <a href="mailto:rehenrik@outlook.com" class="btn-primary">Let's talk</a>
+        <a href="mailto:rehenrik@outlook.com" class="hero-email">rehenrik@outlook.com</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© <span id="year"></span></p>
+    <div class="footer-links">
+      <a href="#">Privacy Policy</a>
+      <span>/</span>
+      <a href="#">Cookies</a>
+    </div>
+    <div class="footer-social">
+      <a href="https://instagram.com" target="_blank">Instagram</a>
+      <a href="https://linkedin.com" target="_blank">LinkedIn</a>
+      <a href="https://x.com" target="_blank">X</a>
+      <a href="https://dribbble.com" target="_blank">Dribbble</a>
+      <a href="https://behance.net" target="_blank">Behance</a>
+    </div>
+  </footer>
+
+  <script src="js/supabase-config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
