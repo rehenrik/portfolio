@@ -2,6 +2,36 @@
 // MAIN.JS – Portfolio logic
 // ============================================================
 
+// ── Theme toggle ─────────────────────────────────────────────
+(function () {
+  var KEY = 'site-theme';
+
+  function getTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(theme, persist) {
+    document.documentElement.classList.add('theme-changing');
+    document.documentElement.setAttribute('data-theme', theme);
+    if (persist) {
+      try { localStorage.setItem(KEY, theme); } catch (e) {}
+    }
+    requestAnimationFrame(function () {
+      document.documentElement.classList.remove('theme-changing');
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('#themeToggle');
+    if (!btn) return;
+    applyTheme(getTheme() === 'dark' ? 'light' : 'dark', true);
+  });
+
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY && e.newValue) applyTheme(e.newValue, false);
+  });
+})();
+
 // ── Year in footer ──────────────────────────────────────────
 document.getElementById('year').textContent = new Date().getFullYear();
 
