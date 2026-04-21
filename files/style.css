@@ -411,6 +411,147 @@ main { padding-top: 100px; }
   .card-line    { gap: var(--gap-mobile); }
 }
 
+/* ── CAROUSEL MODAL ────────────────────────────────────────── */
+.carousel-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-modal.open {
+  display: flex;
+  animation: modalFadeIn 0.25s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.carousel-modal-img-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: calc(100vw - 160px);
+  max-height: calc(100vh - 80px);
+}
+
+.carousel-modal-img-wrap img {
+  max-width: 100%;
+  max-height: calc(100vh - 80px);
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.carousel-modal-img-wrap img.loaded { opacity: 1; }
+
+/* Spinner while loading full image */
+.carousel-modal-spinner {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-top-color: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  animation: modalSpin 0.7s linear infinite;
+  display: none;
+}
+
+.carousel-modal-spinner.visible { display: block; }
+
+@keyframes modalSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Nav arrows */
+.carousel-modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(8px);
+}
+
+.carousel-modal-nav:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.carousel-modal-prev { left: 24px; }
+.carousel-modal-next { right: 24px; }
+
+/* Close button */
+.carousel-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  backdrop-filter: blur(8px);
+}
+
+.carousel-modal-close:hover { background: rgba(255,255,255,0.2); }
+
+/* Counter */
+.carousel-modal-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--sans);
+  pointer-events: none;
+  letter-spacing: 0.05em;
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .carousel-modal-img-wrap {
+    max-width: 100vw;
+    max-height: calc(100vh - 120px);
+    padding: 0 16px;
+  }
+  .carousel-modal-nav {
+    width: 40px; height: 40px;
+  }
+  .carousel-modal-prev { left: 8px; }
+  .carousel-modal-next { right: 8px; }
+}
+
 /* ── PROJECTS ──────────────────────────────────────────────── */
 .projects-section {
   max-width: var(--max-w);

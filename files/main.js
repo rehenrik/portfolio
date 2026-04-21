@@ -240,6 +240,15 @@ class CardStreamController {
     ];
   }
 
+  // Returns an optimised thumbnail URL for Supabase Storage images
+  thumbUrl(src) {
+    if (src && src.includes('/storage/v1/object/public/')) {
+      return src.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+        + '?width=700&quality=55&format=webp';
+    }
+    return src; // external/fallback URLs — use as-is
+  }
+
   makeObserver() {
     return new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -248,7 +257,9 @@ class CardStreamController {
         const src  = card.dataset.bg;
         if (!src) { this.io.unobserve(card); return; }
 
-        card.style.setProperty('--bg', `url("${src}")`);
+        // Use thumbnail for carousel display
+        const thumb = this.thumbUrl(src);
+        card.style.setProperty('--bg', `url("${thumb}")`);
 
         const img = new Image();
         img.decoding = 'async';
@@ -262,7 +273,7 @@ class CardStreamController {
           card.style.setProperty('--bg', this.placeholderBG());
           this.applyWidthFromRatio(card, 1600, 1000);
         };
-        img.src = src;
+        img.src = thumb;
         this.io.unobserve(card);
       });
     }, { root: this.container, rootMargin: '200px' });
@@ -344,11 +355,25 @@ class CardStreamController {
 
     this.cardLine.addEventListener("mousedown",  (e) => this.startDrag(e), { passive: false });
     document.addEventListener("mousemove",       (e) => this.onDrag(e),    { passive: false });
-    document.addEventListener("mouseup",         ()  => this.endDrag());
+    document.addEventListener("mouseup",         (e) => this.endDrag(e));
     this.cardLine.addEventListener("touchstart", (e) => this.startDrag(e), { passive: false });
     document.addEventListener("touchmove",       (e) => this.onDrag(e),    { passive: false });
-    document.addEventListener("touchend",        ()  => this.endDrag());
-    document.addEventListener("touchcancel",     ()  => this.endDrag());
+    document.addEventListener("touchend",        (e) => this.endDrag(e));
+    document.addEventListener("touchcancel",     (e) => this.endDrag(e));
+
+    // Modal controls
+    document.getElementById('carouselModalClose')?.addEventListener('click', () => this.closeModal());
+    document.getElementById('carouselModalPrev')?.addEventListener('click',  () => this.modalNav(-1));
+    document.getElementById('carouselModalNext')?.addEventListener('click',  () => this.modalNav(1));
+    document.getElementById('carouselModal')?.addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) this.closeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!this.modalOpen) return;
+      if (e.key === 'Escape')     this.closeModal();
+      if (e.key === 'ArrowLeft')  this.modalNav(-1);
+      if (e.key === 'ArrowRight') this.modalNav(1);
+    });
   }
 
   getClientX(evt) {
@@ -359,10 +384,13 @@ class CardStreamController {
 
   startDrag(e) {
     e.preventDefault();
-    this.isDragging  = true;
-    this.isAnimating = true;
+    this.isDragging    = true;
+    this.isAnimating   = true;
+    this.dragStartX    = this.getClientX(e);
+    this.dragMoved     = false;
+    this.dragTarget    = e.target.closest('.card');
     this.cardLine.classList.add("dragging", "working");
-    this.lastPointerX  = this.getClientX(e);
+    this.lastPointerX  = this.dragStartX;
     this.mouseVelocity = 0;
     const t = getComputedStyle(this.cardLine).transform;
     if (t !== "none") this.position = new DOMMatrix(t).m41;
@@ -373,6 +401,7 @@ class CardStreamController {
     e.preventDefault();
     const x  = this.getClientX(e);
     const dx = x - this.lastPointerX;
+    if (Math.abs(x - this.dragStartX) > 6) this.dragMoved = true;
     this.lastPointerX  = x;
     this.position     += dx;
     this.mouseVelocity = dx * 60;
@@ -380,14 +409,84 @@ class CardStreamController {
     this.recycleIfNeeded();
   }
 
-  endDrag() {
+  endDrag(e) {
     if (!this.isDragging) return;
     this.isDragging = false;
     this.cardLine.classList.remove("dragging");
+
+    // Genuine click (no significant movement)
+    if (!this.dragMoved && this.dragTarget) {
+      const src = this.dragTarget.dataset.bg;
+      if (src) {
+        const idx = this.cards.findIndex(c => c.src === src);
+        this.openModal(idx >= 0 ? idx : 0);
+        return;
+      }
+    }
+
     const speed    = Math.abs(this.mouseVelocity);
     this.velocity  = speed > 0 ? Math.max(this.minVelocity, speed) : this.minVelocity;
     this.direction = this.mouseVelocity > 0 ? 1 : -1;
     if (this.velocity <= this.minVelocity) this.cardLine.classList.remove("working");
+  }
+
+  // ── MODAL ────────────────────────────────────────────────────
+  openModal(idx) {
+    this.modalOpen  = true;
+    this.modalIdx   = idx;
+    this.wasAnimating = this.isAnimating;
+    this.isAnimating  = false; // pause carousel
+
+    const modal = document.getElementById('carouselModal');
+    modal?.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    this.loadModalImage(idx);
+  }
+
+  closeModal() {
+    this.modalOpen = false;
+    const modal = document.getElementById('carouselModal');
+    modal?.classList.remove('open');
+    document.body.style.overflow = '';
+    this.isAnimating = true; // resume carousel
+    this.lastTime    = performance.now();
+  }
+
+  modalNav(dir) {
+    const total = this.cards.length;
+    this.modalIdx = (this.modalIdx + dir + total) % total;
+    this.loadModalImage(this.modalIdx);
+  }
+
+  loadModalImage(idx) {
+    const card    = this.cards[idx];
+    const img     = document.getElementById('carouselModalImg');
+    const spinner = document.getElementById('carouselModalSpinner');
+    const counter = document.getElementById('carouselModalCounter');
+    if (!img || !card) return;
+
+    // Counter
+    if (counter) counter.textContent = `${idx + 1} / ${this.cards.length}`;
+
+    // Show spinner, hide current image
+    img.classList.remove('loaded');
+    spinner?.classList.add('visible');
+
+    // Load full-quality image
+    const fullImg = new Image();
+    fullImg.decoding = 'async';
+    fullImg.onload = () => {
+      img.src = card.src;
+      img.alt = card.label || '';
+      img.classList.add('loaded');
+      spinner?.classList.remove('visible');
+    };
+    fullImg.onerror = () => {
+      img.src = card.src;
+      img.classList.add('loaded');
+      spinner?.classList.remove('visible');
+    };
+    fullImg.src = card.src;
   }
 
   animate() {
