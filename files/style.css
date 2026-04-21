@@ -469,7 +469,7 @@ main { padding-top: 100px; }
 
 .carousel-modal-img-wrap img.loaded { opacity: 1; }
 
-/* Video in modal */
+/* Video in modal — hidden by inline style, shown via JS */
 .carousel-modal-img-wrap video {
   max-width: calc(100vw - 160px);
   max-height: calc(100vh - 80px);
@@ -477,7 +477,6 @@ main { padding-top: 100px; }
   border-radius: 8px;
   opacity: 0;
   transition: opacity 0.25s ease;
-  display: none;
   outline: none;
 }
 
