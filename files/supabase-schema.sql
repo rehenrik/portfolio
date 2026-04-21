@@ -32,6 +32,28 @@ create policy "Auth user can manage projects"
   for all
   using (auth.role() = 'authenticated');
 
+-- Carousel images table
+create table if not exists public.carousel_images (
+  id         uuid primary key default gen_random_uuid(),
+  image_url  text not null,
+  label      text,
+  "order"    int default 0,
+  active     boolean default true,
+  created_at timestamptz default now()
+);
+
+alter table public.carousel_images enable row level security;
+
+create policy "Public can read active carousel images"
+  on public.carousel_images
+  for select
+  using (active = true);
+
+create policy "Auth user can manage carousel images"
+  on public.carousel_images
+  for all
+  using (auth.role() = 'authenticated');
+
 -- ── SEED DATA (example) ─────────────────────────────────────
 insert into public.projects (title, description, year, tags, image_url, url, "order") values
   (

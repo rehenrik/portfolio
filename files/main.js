@@ -195,25 +195,49 @@ class CardStreamController {
     this.minVelocity = 30;
     this.gapPx = 40;
 
-    const BASE = 'https://rehenrik.design/wp-content/uploads';
-    this.cards = [
-      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: "Bubble" },
-      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: "Cosmos Control Deck" },
-      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: "MG4" },
-      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: "Nodes" },
-      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: "EasyTax" },
-      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: "Design" },
-      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: "Elevate" },
-      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: "Cards" },
-      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: "Powerhouse" },
-      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: "Beneath the Surface" },
-      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: "Finance" },
-      { src: `${BASE}/2025/09/floratil.webp`,                  label: "Floratil" }
-    ];
-
+    this.cards = [];
     this.dimCache = new Map();
     this.io = this.makeObserver();
+    this.initAsync();
+  }
+
+  async initAsync() {
+    // Try to load from Supabase, fallback to rehenrik.design images
+    try {
+      const client = await getSupabaseClient();
+      const { data, error } = await client
+        .from('carousel_images')
+        .select('image_url, label')
+        .eq('active', true)
+        .order('order', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        this.cards = data.map(r => ({ src: r.image_url, label: r.label || '' }));
+      } else {
+        this.cards = this.fallbackCards();
+      }
+    } catch (e) {
+      this.cards = this.fallbackCards();
+    }
     this.init();
+  }
+
+  fallbackCards() {
+    const BASE = 'https://rehenrik.design/wp-content/uploads';
+    return [
+      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: 'Bubble' },
+      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: 'Cosmos Control Deck' },
+      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: 'MG4' },
+      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: 'Nodes' },
+      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: 'EasyTax' },
+      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: 'Design' },
+      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: 'Elevate' },
+      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: 'Cards' },
+      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: 'Powerhouse' },
+      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: 'Beneath the Surface' },
+      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: 'Finance' },
+      { src: `${BASE}/2025/09/floratil.webp`,                  label: 'Floratil' }
+    ];
   }
 
   makeObserver() {

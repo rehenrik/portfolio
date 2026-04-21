@@ -685,11 +685,119 @@
 
     .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+    /* ── CAROUSEL GRID ─────────────────────────────── */
+    .carousel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .carousel-card {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      aspect-ratio: 16 / 10;
+      cursor: grab;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .carousel-card:hover { border-color: rgba(255,255,255,0.2); }
+    .carousel-card.drag-over { border-color: var(--accent); transform: scale(1.02); }
+    .carousel-card.inactive { opacity: 0.4; }
+
+    .carousel-card img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .carousel-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 8px;
+    }
+
+    .carousel-card:hover .carousel-card-overlay { opacity: 1; }
+
+    .carousel-card-label {
+      font-size: 0.72rem;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
+    }
+
+    .carousel-card-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .carousel-card-btn {
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: opacity 0.15s;
+    }
+
+    .carousel-card-btn:hover { opacity: 0.8; }
+    .carousel-card-btn.del  { background: rgba(239,68,68,0.85); color: #fff; }
+    .carousel-card-btn.hide { background: rgba(0,0,0,0.6); color: #fff; }
+
+    /* Upload tile (add new) */
+    .carousel-upload-tile {
+      aspect-ratio: 16 / 10;
+      border-radius: var(--radius);
+      border: 2px dashed var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      color: var(--fg-muted);
+      font-size: 0.8rem;
+    }
+
+    .carousel-upload-tile:hover,
+    .carousel-upload-tile.dragover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+      color: var(--fg);
+    }
+
+    .carousel-upload-tile input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
     @media (max-width: 600px) {
       .form-row { grid-template-columns: 1fr; }
       .project-row { grid-template-columns: 28px 44px 1fr auto; }
       .project-row .row-year,
       .project-row .row-status { display: none; }
+      .carousel-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
     }
   </style>
 </head>
@@ -767,6 +875,25 @@
       <div class="loading-row">
         <div class="spinner"></div>
         Loading projects…
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
+
+    <!-- Carousel section -->
+    <div class="section-top">
+      <h2>
+        Carousel Images
+        <span class="count-badge" id="carouselCountBadge">0</span>
+      </h2>
+      <span style="font-size:0.8rem;color:var(--fg-muted)">Drag to reorder · Click to toggle visibility</span>
+    </div>
+
+    <div class="carousel-grid" id="carouselGrid">
+      <div class="loading-row" style="grid-column:1/-1">
+        <div class="spinner"></div>
+        Loading…
       </div>
     </div>
 
@@ -956,6 +1083,7 @@ function showApp() {
   const app = document.getElementById('app');
   app.style.display = 'flex';
   loadProjects();
+  loadCarouselImages();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1420,6 +1548,217 @@ function toast(message, type = 'success') {
   el.innerHTML = `${icon} ${message}`;
   container.appendChild(el);
   setTimeout(() => el.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  CAROUSEL IMAGES
+// ══════════════════════════════════════════════════════════════
+const CAROUSEL_BUCKET = 'carousel-images';
+let carouselImages = [];
+let carouselDragSrcIdx = null;
+
+async function loadCarouselImages() {
+  const grid = document.getElementById('carouselGrid');
+  grid.innerHTML = `<div class="loading-row" style="grid-column:1/-1"><div class="spinner"></div>Loading…</div>`;
+
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('carousel_images')
+      .select('*')
+      .order('order', { ascending: true });
+
+    if (error) throw error;
+    carouselImages = data || [];
+    renderCarouselGrid();
+  } catch (err) {
+    grid.innerHTML = `<div class="loading-row" style="grid-column:1/-1;color:var(--danger)">Failed: ${err.message}</div>`;
+  }
+}
+
+function renderCarouselGrid() {
+  const grid = document.getElementById('carouselGrid');
+  document.getElementById('carouselCountBadge').textContent = carouselImages.length;
+  grid.innerHTML = '';
+
+  // Upload tile first
+  const uploadTile = document.createElement('label');
+  uploadTile.className = 'carousel-upload-tile';
+  uploadTile.innerHTML = `
+    <input type="file" id="carouselFileInput" accept="image/*" multiple />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span>Add image</span>`;
+
+  uploadTile.addEventListener('dragover', e => { e.preventDefault(); uploadTile.classList.add('dragover'); });
+  uploadTile.addEventListener('dragleave', () => uploadTile.classList.remove('dragover'));
+  uploadTile.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadTile.classList.remove('dragover');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length) uploadCarouselFiles(files);
+  });
+
+  uploadTile.querySelector('input').addEventListener('change', e => {
+    const files = Array.from(e.target.files);
+    if (files.length) uploadCarouselFiles(files);
+    e.target.value = '';
+  });
+
+  grid.appendChild(uploadTile);
+
+  // Image cards
+  carouselImages.forEach((img, idx) => {
+    const card = document.createElement('div');
+    card.className = `carousel-card${img.active === false ? ' inactive' : ''}`;
+    card.draggable = true;
+    card.dataset.id  = img.id;
+    card.dataset.idx = idx;
+
+    card.innerHTML = `
+      <img src="${img.image_url}" alt="${img.label || ''}" loading="lazy" />
+      <div class="carousel-card-overlay">
+        <span class="carousel-card-label">${img.label || ''}</span>
+        <div class="carousel-card-actions">
+          <button class="carousel-card-btn hide" title="${img.active !== false ? 'Hide' : 'Show'}">
+            ${img.active !== false
+              ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg>`
+              : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`
+            }
+          </button>
+          <button class="carousel-card-btn del" title="Delete">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>`;
+
+    // Toggle visibility
+    card.querySelector('.hide').addEventListener('click', e => {
+      e.stopPropagation();
+      toggleCarouselImage(img.id, img.active !== false);
+    });
+
+    // Delete
+    card.querySelector('.del').addEventListener('click', e => {
+      e.stopPropagation();
+      deleteCarouselImage(img.id, img.image_url);
+    });
+
+    // Drag to reorder
+    card.addEventListener('dragstart', ev => {
+      carouselDragSrcIdx = idx;
+      ev.dataTransfer.effectAllowed = 'move';
+      card.style.opacity = '0.4';
+    });
+    card.addEventListener('dragend', () => {
+      card.style.opacity = '';
+      document.querySelectorAll('.carousel-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', ev => {
+      ev.preventDefault();
+      document.querySelectorAll('.carousel-card').forEach(c => c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', async ev => {
+      ev.preventDefault();
+      const targetIdx = idx;
+      if (carouselDragSrcIdx === null || carouselDragSrcIdx === targetIdx) return;
+
+      const reordered = [...carouselImages];
+      const [moved] = reordered.splice(carouselDragSrcIdx, 1);
+      reordered.splice(targetIdx, 0, moved);
+      carouselImages = reordered;
+      renderCarouselGrid();
+
+      try {
+        const client = await getClient();
+        await Promise.all(reordered.map((item, i) =>
+          client.from('carousel_images').update({ order: i }).eq('id', item.id)
+        ));
+        toast('Order saved', 'success');
+      } catch (err) {
+        toast('Failed to save order: ' + err.message, 'error');
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+async function uploadCarouselFiles(files) {
+  const client = await getClient();
+  let uploaded = 0;
+
+  for (const file of files) {
+    const ext      = file.name.split('.').pop();
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    try {
+      // Show a temporary placeholder card
+      toast(`Uploading ${file.name}…`, 'success');
+
+      const { data, error } = await client.storage
+        .from(CAROUSEL_BUCKET)
+        .upload(filename, file, { cacheControl: '3600', upsert: false });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = client.storage
+        .from(CAROUSEL_BUCKET)
+        .getPublicUrl(data.path);
+
+      const label = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      const nextOrder = carouselImages.length + uploaded;
+
+      const { error: insertError } = await client
+        .from('carousel_images')
+        .insert({ image_url: publicUrl, label, order: nextOrder, active: true });
+
+      if (insertError) throw insertError;
+      uploaded++;
+    } catch (err) {
+      toast(`Error uploading ${file.name}: ${err.message}`, 'error');
+    }
+  }
+
+  if (uploaded > 0) {
+    toast(`${uploaded} image${uploaded > 1 ? 's' : ''} added!`, 'success');
+    await loadCarouselImages();
+  }
+}
+
+async function toggleCarouselImage(id, currentlyActive) {
+  try {
+    const client = await getClient();
+    const { error } = await client
+      .from('carousel_images')
+      .update({ active: !currentlyActive })
+      .eq('id', id);
+
+    if (error) throw error;
+    await loadCarouselImages();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+async function deleteCarouselImage(id, imageUrl) {
+  try {
+    const client = await getClient();
+
+    // Remove from storage
+    if (imageUrl) {
+      const path = imageUrl.split('/').slice(-1)[0];
+      await client.storage.from(CAROUSEL_BUCKET).remove([path]);
+    }
+
+    const { error } = await client.from('carousel_images').delete().eq('id', id);
+    if (error) throw error;
+
+    toast('Image removed', 'success');
+    await loadCarouselImages();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
