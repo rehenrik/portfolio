@@ -218,7 +218,9 @@ class CardStreamController {
         this.cards = data.map(r => ({
           src:   r.image_url,
           label: r.label || '',
-          type:  (r.mime_type || '').startsWith('video/') ? 'video' : 'image'
+          type:  (r.mime_type || '').startsWith('video/')
+                   || /\.(mp4|webm|mov|ogg)(\?|$)/i.test(r.image_url || '')
+                   ? 'video' : 'image'
         }));
       } else {
         this.cards = [];
