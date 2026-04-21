@@ -21,41 +21,47 @@
 </head>
 <body>
 
-  <!-- NAV -->
-  <header class="nav">
-    <div class="nav-blur">
-      <div class="blur-layer blur-1"></div>
-      <div class="blur-layer blur-2"></div>
-      <div class="blur-layer blur-3"></div>
-      <div class="blur-layer blur-4"></div>
-      <div class="blur-layer blur-5"></div>
-    </div>
-    <a href="/" class="nav-logo">YN</a>
-    <div class="nav-right">
-      <nav class="nav-links">
-        <a href="/" class="active">Work</a>
-        <a href="about.html">About</a>
-        <a href="playground.html">Playground</a>
-        <a href="mailto:rehenrik@outlook.com">Contact</a>
-      </nav>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <!-- Sol -->
-        <span class="icon-sun">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="5"/>
-            <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- NAV BLUR BACKGROUND -->
+  <div class="nav-blur">
+    <div class="blur-layer blur-1"></div>
+    <div class="blur-layer blur-2"></div>
+    <div class="blur-layer blur-3"></div>
+    <div class="blur-layer blur-4"></div>
+    <div class="blur-layer blur-5"></div>
+  </div>
+
+  <!-- NAV PILL -->
+  <div class="nav-wrapper">
+    <header class="nav">
+      <a href="/" class="nav-logo">YN</a>
+      <div class="nav-right">
+        <nav class="nav-links">
+          <a href="/" class="active">Work</a>
+          <a href="about.html">About</a>
+          <a href="playground.html">Playground</a>
+          <a href="mailto:rehenrik@outlook.com">Contact</a>
+        </nav>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <span class="icon-sun">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="5"/>
+              <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
+            </svg>
+          </span>
+          <span class="icon-moon">
+            <svg viewBox="0 0 36 36" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18.1754 35.5004C15.7254 35.5004 13.4286 35.0338 11.2848 34.1004C9.14105 33.1671 7.27439 31.9056 5.6848 30.3161C4.09522 28.7265 2.83376 26.8598 1.90043 24.7161C0.967094 22.5723 0.500427 20.2754 0.500427 17.8254C0.500427 13.5671 1.85668 9.81189 4.56918 6.5598C7.28168 3.30772 10.7379 1.28793 14.9379 0.500427C14.4129 3.38793 14.5733 6.2098 15.4192 8.96605C16.265 11.7223 17.7233 14.1358 19.7942 16.2067C21.865 18.2775 24.2786 19.7358 27.0348 20.5817C29.7911 21.4275 32.6129 21.5879 35.5004 21.0629C34.7421 25.2629 32.7296 28.7192 29.4629 31.4317C26.1963 34.1442 22.4338 35.5004 18.1754 35.5004Z"/>
+            </svg>
+          </span>
+        </button>
+        <button class="nav-menu-btn" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
-        </span>
-        <!-- Lua -->
-        <span class="icon-moon">
-          <svg viewBox="0 0 36 36" width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18.1754 35.5004C15.7254 35.5004 13.4286 35.0338 11.2848 34.1004C9.14105 33.1671 7.27439 31.9056 5.6848 30.3161C4.09522 28.7265 2.83376 26.8598 1.90043 24.7161C0.967094 22.5723 0.500427 20.2754 0.500427 17.8254C0.500427 13.5671 1.85668 9.81189 4.56918 6.5598C7.28168 3.30772 10.7379 1.28793 14.9379 0.500427C14.4129 3.38793 14.5733 6.2098 15.4192 8.96605C16.265 11.7223 17.7233 14.1358 19.7942 16.2067C21.865 18.2775 24.2786 19.7358 27.0348 20.5817C29.7911 21.4275 32.6129 21.5879 35.5004 21.0629C34.7421 25.2629 32.7296 28.7192 29.4629 31.4317C26.1963 34.1442 22.4338 35.5004 18.1754 35.5004Z"/>
-          </svg>
-        </span>
-      </button>
-      <button class="nav-menu-btn" aria-label="Menu">☰</button>
-    </div>
-  </header>
+        </button>
+      </div>
+    </header>
+  </div>
 
   <!-- MOBILE MENU -->
   <div class="mobile-menu" id="mobileMenu">
@@ -207,5 +213,73 @@
 
   <script src="./supabase-config.js"></script>
   <script src="./main.js"></script>
+  <script>
+    // Heading character animation (igual ao rehenrik.design)
+    (function () {
+      var SELECTOR = 'h1, h2';
+
+      function splitWordsIntoChars(el) {
+        var tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+          acceptNode: function(n) { return n.nodeValue ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; }
+        });
+        var textNodes = [];
+        while (tw.nextNode()) textNodes.push(tw.currentNode);
+
+        textNodes.forEach(function(tn) {
+          var parts = tn.nodeValue.split(/(\s+)/);
+          var frag = document.createDocumentFragment();
+          var index = 0;
+          parts.forEach(function(part) {
+            if (part.trim() === '') {
+              frag.appendChild(document.createTextNode(part));
+            } else {
+              var w = document.createElement('span');
+              w.className = 'wf-word';
+              Array.from(part).forEach(function(ch) {
+                var span = document.createElement('span');
+                span.className = 'wf-char';
+                span.textContent = ch;
+                span.style.setProperty('--i', index++);
+                w.appendChild(span);
+              });
+              frag.appendChild(w);
+            }
+          });
+          tn.parentNode.replaceChild(frag, tn);
+        });
+      }
+
+      function prepHeading(h) {
+        if (!h || h.dataset.wfProcessed) return;
+        h.dataset.wfProcessed = '1';
+        h.classList.add('wf-heading');
+        splitWordsIntoChars(h);
+      }
+
+      var io = ('IntersectionObserver' in window)
+        ? new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-inview');
+                io.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.2, rootMargin: '0px 0px -10% 0px' })
+        : null;
+
+      function initAll() {
+        document.querySelectorAll(SELECTOR).forEach(function(h) {
+          prepHeading(h);
+          if (io) io.observe(h); else h.classList.add('is-inview');
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAll, { once: true });
+      } else {
+        initAll();
+      }
+    })();
+  </script>
 </body>
 </html>
