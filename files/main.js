@@ -210,7 +210,7 @@ class CardStreamController {
       const client = await getSupabaseClient();
       const { data, error } = await client
         .from('carousel_images')
-        .select('image_url, label, mime_type')
+        .select('*')
         .eq('active', true)
         .order('order', { ascending: true });
 
@@ -218,33 +218,15 @@ class CardStreamController {
         this.cards = data.map(r => ({
           src:   r.image_url,
           label: r.label || '',
-          type:  r.mime_type?.startsWith('video/') ? 'video' : 'image'
+          type:  (r.mime_type || '').startsWith('video/') ? 'video' : 'image'
         }));
       } else {
-        this.cards = this.fallbackCards();
+        this.cards = [];
       }
     } catch (e) {
-      this.cards = this.fallbackCards();
+      this.cards = [];
     }
     this.init();
-  }
-
-  fallbackCards() {
-    const BASE = 'https://rehenrik.design/wp-content/uploads';
-    return [
-      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: 'Bubble',              type: 'image' },
-      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: 'Cosmos Control Deck', type: 'image' },
-      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: 'MG4',                 type: 'image' },
-      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: 'Nodes',               type: 'image' },
-      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: 'EasyTax',             type: 'image' },
-      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: 'Design',              type: 'image' },
-      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: 'Elevate',             type: 'image' },
-      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: 'Cards',               type: 'image' },
-      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: 'Powerhouse',          type: 'image' },
-      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: 'Beneath the Surface', type: 'image' },
-      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: 'Finance',             type: 'image' },
-      { src: `${BASE}/2025/09/floratil.webp`,                  label: 'Floratil',            type: 'image' }
-    ];
   }
 
   // Returns an optimised thumbnail URL for Supabase Storage images
@@ -313,6 +295,7 @@ class CardStreamController {
 
   populate() {
     this.cardLine.innerHTML = "";
+    if (!this.cards.length) return;
     for (let i = 0; i < 30; i++) {
       const item = this.cards[i % this.cards.length];
       this.cardLine.appendChild(this.createCard(item));
