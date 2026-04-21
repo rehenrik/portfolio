@@ -759,6 +759,20 @@
     .carousel-card-btn.del  { background: rgba(239,68,68,0.85); color: #fff; }
     .carousel-card-btn.hide { background: rgba(0,0,0,0.6); color: #fff; }
 
+    .carousel-card-video-badge {
+      position: absolute;
+      top: 6px; left: 6px;
+      background: rgba(0,0,0,0.65);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
     /* Upload tile (add new) */
     .carousel-upload-tile {
       aspect-ratio: 16 / 10;
@@ -1585,16 +1599,16 @@ function renderCarouselGrid() {
   const uploadTile = document.createElement('label');
   uploadTile.className = 'carousel-upload-tile';
   uploadTile.innerHTML = `
-    <input type="file" id="carouselFileInput" accept="image/*" multiple />
+    <input type="file" id="carouselFileInput" accept="image/*,video/*" multiple />
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    <span>Add image</span>`;
+    <span>Add media</span>`;
 
   uploadTile.addEventListener('dragover', e => { e.preventDefault(); uploadTile.classList.add('dragover'); });
   uploadTile.addEventListener('dragleave', () => uploadTile.classList.remove('dragover'));
   uploadTile.addEventListener('drop', e => {
     e.preventDefault();
     uploadTile.classList.remove('dragover');
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
     if (files.length) uploadCarouselFiles(files);
   });
 
@@ -1614,8 +1628,13 @@ function renderCarouselGrid() {
     card.dataset.id  = img.id;
     card.dataset.idx = idx;
 
+    const isVideo = img.mime_type?.startsWith('video/');
     card.innerHTML = `
-      <img src="${img.image_url}" alt="${img.label || ''}" loading="lazy" />
+      ${isVideo
+        ? `<video src="${img.image_url}" muted preload="metadata" style="width:100%;height:100%;object-fit:cover;pointer-events:none;display:block;"></video>
+           <div class="carousel-card-video-badge">video</div>`
+        : `<img src="${img.image_url}" alt="${img.label || ''}" loading="lazy" />`
+      }
       <div class="carousel-card-overlay">
         <span class="carousel-card-label">${img.label || ''}</span>
         <div class="carousel-card-actions">
@@ -1698,7 +1717,7 @@ async function uploadCarouselFiles(files) {
 
       const { data, error } = await client.storage
         .from(CAROUSEL_BUCKET)
-        .upload(filename, file, { cacheControl: '3600', upsert: false });
+        .upload(filename, file, { cacheControl: '3600', upsert: false, contentType: file.type });
 
       if (error) throw error;
 
@@ -1711,7 +1730,7 @@ async function uploadCarouselFiles(files) {
 
       const { error: insertError } = await client
         .from('carousel_images')
-        .insert({ image_url: publicUrl, label, order: nextOrder, active: true });
+        .insert({ image_url: publicUrl, label, mime_type: file.type, order: nextOrder, active: true });
 
       if (insertError) throw insertError;
       uploaded++;
@@ -1721,7 +1740,7 @@ async function uploadCarouselFiles(files) {
   }
 
   if (uploaded > 0) {
-    toast(`${uploaded} image${uploaded > 1 ? 's' : ''} added!`, 'success');
+    toast(`${uploaded} file${uploaded > 1 ? 's' : ''} added!`, 'success');
     await loadCarouselImages();
   }
 }

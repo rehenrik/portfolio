@@ -195,24 +195,31 @@ class CardStreamController {
     this.minVelocity = 30;
     this.gapPx = 40;
 
-    this.cards = [];
-    this.dimCache = new Map();
-    this.io = this.makeObserver();
+    this.cards       = [];
+    this.dimCache    = new Map();
+    this.modalOpen   = false;
+    this.modalIdx    = 0;
+
+    this.io           = this.makeLazyObserver();
+    this.playObserver = this.makePlayObserver(); // plays/pauses videos by visibility
     this.initAsync();
   }
 
   async initAsync() {
-    // Try to load from Supabase, fallback to rehenrik.design images
     try {
       const client = await getSupabaseClient();
       const { data, error } = await client
         .from('carousel_images')
-        .select('image_url, label')
+        .select('image_url, label, mime_type')
         .eq('active', true)
         .order('order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        this.cards = data.map(r => ({ src: r.image_url, label: r.label || '' }));
+        this.cards = data.map(r => ({
+          src:   r.image_url,
+          label: r.label || '',
+          type:  r.mime_type?.startsWith('video/') ? 'video' : 'image'
+        }));
       } else {
         this.cards = this.fallbackCards();
       }
@@ -225,18 +232,18 @@ class CardStreamController {
   fallbackCards() {
     const BASE = 'https://rehenrik.design/wp-content/uploads';
     return [
-      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: 'Bubble' },
-      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: 'Cosmos Control Deck' },
-      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: 'MG4' },
-      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: 'Nodes' },
-      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: 'EasyTax' },
-      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: 'Design' },
-      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: 'Elevate' },
-      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: 'Cards' },
-      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: 'Powerhouse' },
-      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: 'Beneath the Surface' },
-      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: 'Finance' },
-      { src: `${BASE}/2025/09/floratil.webp`,                  label: 'Floratil' }
+      { src: `${BASE}/2025/08/Bubble-thumb.webp`,              label: 'Bubble',              type: 'image' },
+      { src: `${BASE}/2025/08/Cosmos-Control-Deck-thumb.webp`, label: 'Cosmos Control Deck', type: 'image' },
+      { src: `${BASE}/2025/08/MG4-thumb.webp`,                 label: 'MG4',                 type: 'image' },
+      { src: `${BASE}/2025/08/nodes-thumb.webp`,               label: 'Nodes',               type: 'image' },
+      { src: `${BASE}/2025/08/EasyTax-thumb-.webp`,            label: 'EasyTax',             type: 'image' },
+      { src: `${BASE}/2025/08/design-thumb-1.webp`,            label: 'Design',              type: 'image' },
+      { src: `${BASE}/2025/08/elevate-thumb.webp`,             label: 'Elevate',             type: 'image' },
+      { src: `${BASE}/2025/08/cards-thumb-1.webp`,             label: 'Cards',               type: 'image' },
+      { src: `${BASE}/2025/08/powerhouse-thumb.webp`,          label: 'Powerhouse',          type: 'image' },
+      { src: `${BASE}/2025/08/Beneath-the-surface-thumb.webp`, label: 'Beneath the Surface', type: 'image' },
+      { src: `${BASE}/2025/08/finance-thumb.webp`,             label: 'Finance',             type: 'image' },
+      { src: `${BASE}/2025/09/floratil.webp`,                  label: 'Floratil',            type: 'image' }
     ];
   }
 
@@ -249,15 +256,19 @@ class CardStreamController {
     return src; // external/fallback URLs — use as-is
   }
 
-  makeObserver() {
+  makeLazyObserver() {
     return new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         const card = entry.target;
-        const src  = card.dataset.bg;
+        if ((card.dataset.type || 'image') === 'video') {
+          this.io.unobserve(card);
+          return; // videos are handled in createCard directly
+        }
+
+        const src = card.dataset.bg;
         if (!src) { this.io.unobserve(card); return; }
 
-        // Use thumbnail for carousel display
         const thumb = this.thumbUrl(src);
         card.style.setProperty('--bg', `url("${thumb}")`);
 
@@ -277,6 +288,20 @@ class CardStreamController {
         this.io.unobserve(card);
       });
     }, { root: this.container, rootMargin: '200px' });
+  }
+
+  makePlayObserver() {
+    // root: null = viewport — works reliably with CSS-transform carousels
+    return new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.1 });
   }
 
   init() {
@@ -302,7 +327,20 @@ class CardStreamController {
     card.setAttribute("role", "img");
     if (item.label) card.setAttribute("aria-label", item.label);
     card.style.setProperty('--bg', this.placeholderBG());
-    card.dataset.bg = item.src;
+    card.dataset.bg   = item.src;
+    card.dataset.type = item.type || 'image';
+
+    if (item.type === 'video') {
+      const video = document.createElement('video');
+      video.loop    = true;
+      video.muted   = true;
+      video.setAttribute('playsinline', '');
+      video.preload = 'metadata'; // loads first frame only; full data fetched on play()
+      video.src     = item.src;
+      card.appendChild(video);
+      this.playObserver.observe(video); // plays when card enters viewport
+    }
+
     this.io.observe(card);
     wrapper.appendChild(card);
     return wrapper;
@@ -373,6 +411,13 @@ class CardStreamController {
       if (e.key === 'Escape')     this.closeModal();
       if (e.key === 'ArrowLeft')  this.modalNav(-1);
       if (e.key === 'ArrowRight') this.modalNav(1);
+    });
+
+    // Pause carousel videos when tab is hidden
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.cardLine.querySelectorAll('video').forEach(v => v.pause());
+      }
     });
   }
 
@@ -448,8 +493,11 @@ class CardStreamController {
     const modal = document.getElementById('carouselModal');
     modal?.classList.remove('open');
     document.body.style.overflow = '';
-    this.isAnimating = true; // resume carousel
+    this.isAnimating = true;
     this.lastTime    = performance.now();
+    // Stop modal video if playing
+    const mv = document.getElementById('carouselModalVideo');
+    if (mv) { mv.pause(); mv.removeAttribute('src'); mv.load(); mv.classList.remove('loaded'); }
   }
 
   modalNav(dir) {
@@ -461,32 +509,50 @@ class CardStreamController {
   loadModalImage(idx) {
     const card    = this.cards[idx];
     const img     = document.getElementById('carouselModalImg');
+    const mv      = document.getElementById('carouselModalVideo');
     const spinner = document.getElementById('carouselModalSpinner');
     const counter = document.getElementById('carouselModalCounter');
-    if (!img || !card) return;
+    if (!card) return;
 
-    // Counter
     if (counter) counter.textContent = `${idx + 1} / ${this.cards.length}`;
 
-    // Show spinner, hide current image
-    img.classList.remove('loaded');
+    // Reset both elements
+    if (img) { img.classList.remove('loaded'); img.src = ''; img.style.display = 'none'; }
+    if (mv)  { mv.pause(); mv.removeAttribute('src'); mv.load(); mv.classList.remove('loaded'); mv.style.display = 'none'; }
     spinner?.classList.add('visible');
 
-    // Load full-quality image
-    const fullImg = new Image();
-    fullImg.decoding = 'async';
-    fullImg.onload = () => {
-      img.src = card.src;
-      img.alt = card.label || '';
-      img.classList.add('loaded');
-      spinner?.classList.remove('visible');
-    };
-    fullImg.onerror = () => {
-      img.src = card.src;
-      img.classList.add('loaded');
-      spinner?.classList.remove('visible');
-    };
-    fullImg.src = card.src;
+    if (card.type === 'video') {
+      if (!mv) return;
+      mv.style.display = '';
+      mv.src = card.src;
+      mv.load();
+      mv.addEventListener('canplay', () => {
+        mv.classList.add('loaded');
+        spinner?.classList.remove('visible');
+        mv.play().catch(() => {});
+      }, { once: true });
+      mv.addEventListener('error', () => {
+        mv.classList.add('loaded');
+        spinner?.classList.remove('visible');
+      }, { once: true });
+    } else {
+      if (!img) return;
+      img.style.display = '';
+      const fullImg = new Image();
+      fullImg.decoding = 'async';
+      fullImg.onload = () => {
+        img.src = card.src;
+        img.alt = card.label || '';
+        img.classList.add('loaded');
+        spinner?.classList.remove('visible');
+      };
+      fullImg.onerror = () => {
+        img.src = card.src;
+        img.classList.add('loaded');
+        spinner?.classList.remove('visible');
+      };
+      fullImg.src = card.src;
+    }
   }
 
   animate() {
