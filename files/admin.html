@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Portfolio</title>
+  <link rel="icon" href="./logo.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── THEME ─────────────────────────────────────── */
+    :root {
+      --bg:       #0E0E10;
+      --surface:  #18181B;
+      --surface2: #222226;
+      --border:   rgba(255,255,255,0.07);
+      --fg:       #F5F7FA;
+      --fg-muted: rgba(245,247,250,0.45);
+      --accent:   #FE4311;
+      --success:  #22c55e;
+      --danger:   #ef4444;
+      --radius:   12px;
+      --sans:     'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; }
+    input, textarea, select { font-family: inherit; }
+
+    ::selection { background: var(--accent); color: #fff; }
+
+    /* ── SCROLLBAR ─────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ═══════════════════════════════════════════════ */
+    /*  LOGIN SCREEN                                   */
+    /* ═══════════════════════════════════════════════ */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .login-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .login-box h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .login-box p {
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      margin-top: -0.75rem;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 0.8rem; color: var(--fg-muted); font-weight: 500; }
+
+    .field input, .field textarea, .field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--fg);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus,
+    .field textarea:focus { border-color: rgba(255,255,255,0.25); }
+
+    .field input[type="password"] { letter-spacing: 0.15em; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost   { background: var(--surface2); color: var(--fg); border: 1px solid var(--border); }
+    .btn-danger  { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-full    { width: 100%; }
+    .btn-sm      { height: 32px; padding: 0 12px; font-size: 0.8rem; }
+    .btn-icon    { width: 32px; height: 32px; padding: 0; border-radius: 8px; }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: var(--danger);
+      display: none;
+    }
+
+    /* ═══════════════════════════════════════════════ */
+    /*  MAIN APP                                       */
+    /* ═══════════════════════════════════════════════ */
+    #app { display: none; min-height: 100vh; flex-direction: column; }
+
+    /* ── TOPBAR ────────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-logo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    .topbar-title { font-weight: 600; font-size: 0.9rem; }
+    .topbar-badge {
+      font-size: 0.7rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      padding: 2px 8px;
+      border-radius: 99px;
+    }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    /* ── CONTENT ───────────────────────────────────── */
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── SETUP NOTICE ──────────────────────────────── */
+    .notice {
+      background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .notice strong { color: var(--accent); }
+    .notice-icon { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── SECTION HEADER ────────────────────────────── */
+    .section-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .section-top h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .count-badge {
+      font-size: 0.72rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-weight: 400;
+    }
+
+    /* ── PROJECT LIST ──────────────────────────────── */
+    #projectList {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .project-row {
+      display: grid;
+      grid-template-columns: 28px 56px 1fr auto auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: var(--surface);
+      cursor: default;
+      transition: background 0.15s;
+    }
+
+    .project-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+    .project-row:hover { background: var(--surface2); }
+    .project-row.dragging-over { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+
+    .drag-handle {
+      color: var(--fg-muted);
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+    }
+
+    .project-row:hover .drag-handle { opacity: 1; }
+
+    .row-thumb {
+      width: 56px;
+      height: 38px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .row-thumb-placeholder {
+      width: 56px;
+      height: 38px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+      font-size: 18px;
+    }
+
+    .row-info { overflow: hidden; }
+    .row-title {
+      font-weight: 500;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-meta {
+      font-size: 0.75rem;
+      color: var(--fg-muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 1px;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 0.68rem;
+      padding: 1px 7px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+    }
+
+    .pill-green { border-color: rgba(34,197,94,0.3); color: #22c55e; background: rgba(34,197,94,0.08); }
+    .pill-muted { border-color: var(--border); color: var(--fg-muted); }
+
+    .row-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* ── EMPTY STATE ───────────────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 4rem 2rem;
+      color: var(--fg-muted);
+      text-align: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .empty-state svg { opacity: 0.3; }
+    .empty-state p { font-size: 0.9rem; }
+
+    /* ── LOADING ───────────────────────────────────── */
+    .loading-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 3rem;
+      color: var(--fg-muted);
+      font-size: 0.875rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--fg-muted);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ═══════════════════════════════════════════════ */
+    /*  MODAL                                          */
+    /* ═══════════════════════════════════════════════ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      margin: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h3 { font-size: 1rem; font-weight: 600; }
+
+    .modal-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      overflow-y: auto;
+      max-height: calc(90vh - 140px);
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── IMAGE UPLOAD ──────────────────────────────── */
+    .img-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .img-upload-area:hover,
+    .img-upload-area.dragover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 5%, transparent);
+    }
+
+    .img-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .img-upload-label {
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .img-upload-label svg { color: var(--fg-muted); }
+    .img-upload-label span { font-size: 0.85rem; color: var(--fg-muted); }
+    .img-upload-label strong { color: var(--fg); font-size: 0.9rem; }
+
+    .img-preview-wrap {
+      display: none;
+      position: relative;
+    }
+
+    .img-preview-wrap.has-image { display: block; }
+
+    .img-preview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .img-remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.7);
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .upload-progress {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      margin-top: 8px;
+    }
+
+    .upload-progress.visible { display: flex; }
+
+    .progress-bar-track {
+      flex: 1;
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+
+    /* ── FORM GRID ─────────────────────────────────── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* ── TAGS INPUT ────────────────────────────────── */
+    .tags-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      cursor: text;
+      min-height: 44px;
+      transition: border-color 0.2s;
+    }
+
+    .tags-wrap:focus-within { border-color: rgba(255,255,255,0.25); }
+
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 2px 8px 2px 10px;
+      font-size: 0.78rem;
+      color: var(--fg);
+      white-space: nowrap;
+    }
+
+    .tag-chip button {
+      background: none;
+      border: none;
+      color: var(--fg-muted);
+      font-size: 12px;
+      line-height: 1;
+      padding: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .tag-chip button:hover { color: var(--fg); }
+
+    .tags-input {
+      border: none !important;
+      background: transparent !important;
+      padding: 2px 4px !important;
+      color: var(--fg);
+      font-size: 0.875rem;
+      outline: none;
+      min-width: 80px;
+      flex: 1;
+    }
+
+    /* ── TOGGLE ────────────────────────────────────── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .toggle-label { font-size: 0.875rem; }
+    .toggle-sub   { font-size: 0.78rem; color: var(--fg-muted); }
+
+    .toggle {
+      width: 40px;
+      height: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toggle.on { background: var(--success); border-color: transparent; }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+
+    .toggle.on::after { transform: translateX(16px); }
+
+    /* ── TOAST ─────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: toastIn 0.3s ease;
+      pointer-events: all;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .toast-item.success { border-left: 3px solid var(--success); }
+    .toast-item.error   { border-left: 3px solid var(--danger); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── CONFIRM MODAL ─────────────────────────────── */
+    .confirm-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .confirm-backdrop.open { display: flex; }
+
+    .confirm-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      max-width: 340px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .confirm-box h4 { font-size: 0.95rem; font-weight: 600; }
+    .confirm-box p  { font-size: 0.85rem; color: var(--fg-muted); }
+
+    .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .project-row { grid-template-columns: 28px 44px 1fr auto; }
+      .project-row .row-year,
+      .project-row .row-status { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  LOGIN                                                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <img src="./logo.png" alt="Logo" class="login-logo" />
+    <div>
+      <h1>Admin Panel</h1>
+      <p>Enter your password to continue.</p>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <p class="error-msg" id="loginError">Wrong password. Try again.</p>
+    <button class="btn btn-primary btn-full" id="loginBtn">Sign in</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  APP                                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="./logo.png" alt="Logo" class="topbar-logo" />
+      <span class="topbar-title">Admin</span>
+      <span class="topbar-badge">Portfolio</span>
+    </div>
+    <div class="topbar-right">
+      <a href="/" target="_blank" class="btn btn-ghost btn-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        View site
+      </a>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Setup notice -->
+    <div class="notice" id="setupNotice">
+      <div class="notice-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div>
+        <strong>First-time setup:</strong> To enable image uploads, go to your
+        <strong>Supabase dashboard → Storage</strong> and create a public bucket named
+        <strong>project-images</strong>. Also run the SQL from <code>supabase-schema.sql</code> in the SQL editor.
+        <button onclick="document.getElementById('setupNotice').remove()" style="background:none;border:none;color:var(--fg-muted);margin-left:8px;cursor:pointer;font-size:12px;">Dismiss</button>
+      </div>
+    </div>
+
+    <!-- Projects section -->
+    <div class="section-top">
+      <h2>
+        Projects
+        <span class="count-badge" id="countBadge">0</span>
+      </h2>
+      <button class="btn btn-primary btn-sm" id="newProjectBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New project
+      </button>
+    </div>
+
+    <div id="projectList">
+      <div class="loading-row">
+        <div class="spinner"></div>
+        Loading projects…
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  PROJECT MODAL                                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="projectModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">New project</h3>
+      <button class="btn btn-ghost btn-icon" id="closeModalBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Image upload -->
+      <div class="field">
+        <label>Cover Image</label>
+        <div class="img-upload-area" id="uploadArea">
+          <input type="file" id="imageInput" accept="image/*" />
+          <div class="img-upload-label">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <strong>Click or drag an image here</strong>
+            <span>PNG, JPG, WebP — up to 10 MB</span>
+          </div>
+        </div>
+        <div class="img-preview-wrap" id="previewWrap">
+          <img id="imgPreview" class="img-preview" src="" alt="Preview" />
+          <button class="img-remove-btn" id="removeImgBtn" title="Remove image">✕</button>
+        </div>
+        <div class="upload-progress" id="uploadProgress">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <span id="progressLabel">Uploading…</span>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="field">
+        <label>Title *</label>
+        <input type="text" id="fieldTitle" placeholder="e.g. Floratil Redesign" />
+      </div>
+
+      <!-- Description -->
+      <div class="field">
+        <label>Description</label>
+        <textarea id="fieldDesc" placeholder="Short description of the project…" rows="3"></textarea>
+      </div>
+
+      <!-- Year + URL -->
+      <div class="form-row">
+        <div class="field">
+          <label>Year</label>
+          <input type="text" id="fieldYear" placeholder="e.g. 2024 – 2025" />
+        </div>
+        <div class="field">
+          <label>Link URL</label>
+          <input type="text" id="fieldUrl" placeholder="/work/project-name" />
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div class="field">
+        <label>Tags <span style="color:var(--fg-muted);font-weight:400">(press Enter to add)</span></label>
+        <div class="tags-wrap" id="tagsWrap">
+          <input type="text" class="tags-input" id="tagInput" placeholder="Add a tag…" />
+        </div>
+      </div>
+
+      <!-- Order + Published -->
+      <div class="form-row">
+        <div class="field">
+          <label>Order</label>
+          <input type="number" id="fieldOrder" placeholder="1" min="0" />
+        </div>
+        <div class="field" style="justify-content:flex-end;padding-top:20px">
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Published</div>
+              <div class="toggle-sub">Visible on the site</div>
+            </div>
+            <div class="toggle on" id="publishedToggle"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelModalBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveProjectBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save project
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  CONFIRM DELETE                                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-box">
+    <h4>Delete project?</h4>
+    <p>This will permanently delete the project and its image. This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost btn-sm" id="confirmCancelBtn">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  SCRIPTS                                                -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<script src="./supabase-config.js"></script>
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+const ADMIN_PASSWORD  = 'admin2025';   // ← change this
+const STORAGE_BUCKET  = 'project-images';
+const SESSION_KEY     = 'rh_admin_session';
+
+// ── STATE ─────────────────────────────────────────────────────
+let projects      = [];
+let editingId     = null;   // null = new, uuid = editing
+let pendingFile   = null;   // File to upload
+let currentImgUrl = null;   // Existing image URL when editing
+let deletingId    = null;
+
+// ── SUPABASE ──────────────────────────────────────────────────
+let sb = null;
+
+async function getClient() {
+  if (sb) return sb;
+  sb = await getSupabaseClient();
+  return sb;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════
+function checkSession() {
+  return sessionStorage.getItem(SESSION_KEY) === 'ok';
+}
+
+function setSession() {
+  sessionStorage.setItem(SESSION_KEY, 'ok');
+}
+
+function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+}
+
+document.getElementById('loginBtn').addEventListener('click', login);
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+
+function login() {
+  const val = document.getElementById('passwordInput').value;
+  if (val === ADMIN_PASSWORD) {
+    setSession();
+    showApp();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+    document.getElementById('passwordInput').focus();
+  }
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  clearSession();
+  location.reload();
+});
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.style.display = 'flex';
+  loadProjects();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LOAD PROJECTS
+// ══════════════════════════════════════════════════════════════
+async function loadProjects() {
+  const list = document.getElementById('projectList');
+  list.innerHTML = '<div class="loading-row"><div class="spinner"></div>Loading projects…</div>';
+
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('projects')
+      .select('*')
+      .order('order', { ascending: true });
+
+    if (error) throw error;
+    projects = data || [];
+    renderList();
+  } catch (err) {
+    list.innerHTML = `<div class="loading-row" style="color:var(--danger)">Failed to load: ${err.message}</div>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  RENDER LIST
+// ══════════════════════════════════════════════════════════════
+function renderList() {
+  const list = document.getElementById('projectList');
+  document.getElementById('countBadge').textContent = projects.length;
+
+  if (!projects.length) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p>No projects yet.<br/>Click <strong>New project</strong> to add your first one.</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = '';
+  projects.forEach((p, idx) => {
+    const row = document.createElement('div');
+    row.className = 'project-row';
+    row.dataset.id = p.id;
+    row.dataset.idx = idx;
+    row.draggable = true;
+
+    const tags = Array.isArray(p.tags) ? p.tags : [];
+    const thumb = p.image_url
+      ? `<img class="row-thumb" src="${p.image_url}" alt="${p.title}" loading="lazy" />`
+      : `<div class="row-thumb-placeholder">🖼</div>`;
+
+    row.innerHTML = `
+      <div class="drag-handle" title="Drag to reorder">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+      </div>
+      ${thumb}
+      <div class="row-info">
+        <div class="row-title">${p.title}</div>
+        <div class="row-meta">
+          ${p.year ? `<span>${p.year}</span>` : ''}
+          ${tags.slice(0,2).map(t => `<span class="pill pill-muted">${t}</span>`).join('')}
+          ${tags.length > 2 ? `<span class="pill pill-muted">+${tags.length-2}</span>` : ''}
+        </div>
+      </div>
+      <span class="row-year"></span>
+      <span class="pill ${p.published ? 'pill-green' : 'pill-muted'} row-status">
+        ${p.published ? 'Published' : 'Draft'}
+      </span>
+      <div class="row-actions">
+        <button class="btn btn-ghost btn-sm btn-edit" data-id="${p.id}" title="Edit">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit
+        </button>
+        <button class="btn btn-icon btn-ghost btn-delete" data-id="${p.id}" title="Delete" style="color:var(--danger)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div>`;
+
+    // Edit
+    row.querySelector('.btn-edit').addEventListener('click', () => openEditModal(p.id));
+    // Delete
+    row.querySelector('.btn-delete').addEventListener('click', () => confirmDelete(p.id));
+    // Drag
+    setupDragRow(row);
+
+    list.appendChild(row);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DRAG TO REORDER
+// ══════════════════════════════════════════════════════════════
+let dragSrcIdx = null;
+
+function setupDragRow(row) {
+  row.addEventListener('dragstart', e => {
+    dragSrcIdx = +row.dataset.idx;
+    e.dataTransfer.effectAllowed = 'move';
+    row.style.opacity = '0.5';
+  });
+
+  row.addEventListener('dragend', () => {
+    row.style.opacity = '';
+    document.querySelectorAll('.project-row').forEach(r => r.classList.remove('dragging-over'));
+  });
+
+  row.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.project-row').forEach(r => r.classList.remove('dragging-over'));
+    row.classList.add('dragging-over');
+  });
+
+  row.addEventListener('drop', async e => {
+    e.preventDefault();
+    const targetIdx = +row.dataset.idx;
+    if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+
+    const reordered = [...projects];
+    const [moved] = reordered.splice(dragSrcIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+
+    projects = reordered;
+    renderList();
+
+    // Persist new order
+    try {
+      const client = await getClient();
+      await Promise.all(reordered.map((p, i) =>
+        client.from('projects').update({ order: i + 1 }).eq('id', p.id)
+      ));
+      toast('Order saved', 'success');
+    } catch (err) {
+      toast('Failed to save order: ' + err.message, 'error');
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MODAL
+// ══════════════════════════════════════════════════════════════
+document.getElementById('newProjectBtn').addEventListener('click', openNewModal);
+document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+document.getElementById('projectModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+function openNewModal() {
+  editingId     = null;
+  pendingFile   = null;
+  currentImgUrl = null;
+  resetForm();
+  document.getElementById('modalTitle').textContent = 'New project';
+  document.getElementById('projectModal').classList.add('open');
+}
+
+function openEditModal(id) {
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  editingId     = id;
+  pendingFile   = null;
+  currentImgUrl = p.image_url || null;
+
+  document.getElementById('modalTitle').textContent = 'Edit project';
+  document.getElementById('fieldTitle').value  = p.title || '';
+  document.getElementById('fieldDesc').value   = p.description || '';
+  document.getElementById('fieldYear').value   = p.year || '';
+  document.getElementById('fieldUrl').value    = p.url || '';
+  document.getElementById('fieldOrder').value  = p.order ?? '';
+
+  // Published toggle
+  const tog = document.getElementById('publishedToggle');
+  tog.classList.toggle('on', !!p.published);
+
+  // Tags
+  renderTagChips(Array.isArray(p.tags) ? p.tags : []);
+
+  // Image preview
+  const previewWrap = document.getElementById('previewWrap');
+  if (p.image_url) {
+    document.getElementById('imgPreview').src = p.image_url;
+    previewWrap.classList.add('has-image');
+    document.getElementById('uploadArea').style.display = 'none';
+  } else {
+    previewWrap.classList.remove('has-image');
+    document.getElementById('uploadArea').style.display = '';
+  }
+
+  document.getElementById('projectModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('projectModal').classList.remove('open');
+  resetForm();
+}
+
+function resetForm() {
+  document.getElementById('fieldTitle').value  = '';
+  document.getElementById('fieldDesc').value   = '';
+  document.getElementById('fieldYear').value   = '';
+  document.getElementById('fieldUrl').value    = '';
+  document.getElementById('fieldOrder').value  = '';
+  document.getElementById('publishedToggle').classList.add('on');
+  renderTagChips([]);
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('previewWrap').classList.remove('has-image');
+  document.getElementById('uploadArea').style.display = '';
+  document.getElementById('imageInput').value = '';
+  document.getElementById('uploadProgress').classList.remove('visible');
+  pendingFile = null;
+}
+
+// ── Published toggle ─────────────────────────────────────────
+document.getElementById('publishedToggle').addEventListener('click', function() {
+  this.classList.toggle('on');
+});
+
+// ══════════════════════════════════════════════════════════════
+//  TAGS
+// ══════════════════════════════════════════════════════════════
+let currentTags = [];
+
+function renderTagChips(tags) {
+  currentTags = [...tags];
+  const wrap  = document.getElementById('tagsWrap');
+  const input = document.getElementById('tagInput');
+  wrap.querySelectorAll('.tag-chip').forEach(c => c.remove());
+
+  currentTags.forEach(tag => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${tag}<button type="button" data-tag="${tag}">✕</button>`;
+    chip.querySelector('button').addEventListener('click', () => removeTag(tag));
+    wrap.insertBefore(chip, input);
+  });
+}
+
+function addTag(val) {
+  const tag = val.trim();
+  if (!tag || currentTags.includes(tag)) return;
+  currentTags.push(tag);
+  renderTagChips(currentTags);
+}
+
+function removeTag(tag) {
+  currentTags = currentTags.filter(t => t !== tag);
+  renderTagChips(currentTags);
+}
+
+document.getElementById('tagInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addTag(e.target.value);
+    e.target.value = '';
+  }
+  if (e.key === 'Backspace' && !e.target.value && currentTags.length) {
+    removeTag(currentTags[currentTags.length - 1]);
+  }
+});
+
+document.getElementById('tagsWrap').addEventListener('click', () => {
+  document.getElementById('tagInput').focus();
+});
+
+// ══════════════════════════════════════════════════════════════
+//  IMAGE UPLOAD
+// ══════════════════════════════════════════════════════════════
+const uploadArea  = document.getElementById('uploadArea');
+const imageInput  = document.getElementById('imageInput');
+const previewWrap = document.getElementById('previewWrap');
+const imgPreview  = document.getElementById('imgPreview');
+
+imageInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) setPreview(file);
+});
+
+uploadArea.addEventListener('dragover', e => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) setPreview(file);
+});
+
+function setPreview(file) {
+  pendingFile = file;
+  const url   = URL.createObjectURL(file);
+  imgPreview.src = url;
+  previewWrap.classList.add('has-image');
+  uploadArea.style.display = 'none';
+}
+
+document.getElementById('removeImgBtn').addEventListener('click', () => {
+  pendingFile   = null;
+  currentImgUrl = null;
+  imgPreview.src = '';
+  previewWrap.classList.remove('has-image');
+  uploadArea.style.display = '';
+  imageInput.value = '';
+});
+
+async function uploadImage(file) {
+  const progress = document.getElementById('uploadProgress');
+  const fill     = document.getElementById('progressFill');
+  const label    = document.getElementById('progressLabel');
+
+  progress.classList.add('visible');
+  fill.style.width = '10%';
+  label.textContent = 'Uploading…';
+
+  const ext      = file.name.split('.').pop();
+  const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+  const client = await getClient();
+
+  fill.style.width = '40%';
+
+  const { data, error } = await client.storage
+    .from(STORAGE_BUCKET)
+    .upload(filename, file, { cacheControl: '3600', upsert: false });
+
+  if (error) {
+    progress.classList.remove('visible');
+    throw error;
+  }
+
+  fill.style.width = '80%';
+
+  const { data: { publicUrl } } = client.storage
+    .from(STORAGE_BUCKET)
+    .getPublicUrl(data.path);
+
+  fill.style.width = '100%';
+  label.textContent = 'Done!';
+  setTimeout(() => progress.classList.remove('visible'), 800);
+
+  return publicUrl;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SAVE PROJECT
+// ══════════════════════════════════════════════════════════════
+document.getElementById('saveProjectBtn').addEventListener('click', saveProject);
+
+async function saveProject() {
+  const title = document.getElementById('fieldTitle').value.trim();
+  if (!title) {
+    toast('Title is required', 'error');
+    document.getElementById('fieldTitle').focus();
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveProjectBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  try {
+    let imageUrl = currentImgUrl;
+
+    // Upload image if we have a new file
+    if (pendingFile) {
+      imageUrl = await uploadImage(pendingFile);
+    }
+
+    const payload = {
+      title,
+      description: document.getElementById('fieldDesc').value.trim() || null,
+      year:        document.getElementById('fieldYear').value.trim() || null,
+      url:         document.getElementById('fieldUrl').value.trim() || null,
+      order:       parseInt(document.getElementById('fieldOrder').value) || 0,
+      published:   document.getElementById('publishedToggle').classList.contains('on'),
+      tags:        currentTags.length ? currentTags : null,
+      image_url:   imageUrl || null,
+    };
+
+    const client = await getClient();
+
+    if (editingId) {
+      const { error } = await client.from('projects').update(payload).eq('id', editingId);
+      if (error) throw error;
+      toast('Project updated!', 'success');
+    } else {
+      const { error } = await client.from('projects').insert(payload);
+      if (error) throw error;
+      toast('Project created!', 'success');
+    }
+
+    closeModal();
+    await loadProjects();
+
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Save project`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════════════
+function confirmDelete(id) {
+  deletingId = id;
+  document.getElementById('confirmBackdrop').classList.add('open');
+}
+
+document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+  deletingId = null;
+  document.getElementById('confirmBackdrop').classList.remove('open');
+});
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+  if (!deletingId) return;
+  document.getElementById('confirmBackdrop').classList.remove('open');
+
+  try {
+    const client = await getClient();
+
+    // Delete image from storage if exists
+    const project = projects.find(p => p.id === deletingId);
+    if (project?.image_url) {
+      const path = project.image_url.split('/').slice(-1)[0];
+      await client.storage.from(STORAGE_BUCKET).remove([path]);
+    }
+
+    const { error } = await client.from('projects').delete().eq('id', deletingId);
+    if (error) throw error;
+
+    toast('Project deleted', 'success');
+    await loadProjects();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+
+  deletingId = null;
+});
+
+// ══════════════════════════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════════════════════════
+function toast(message, type = 'success') {
+  const container = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast-item ${type}`;
+
+  const icon = type === 'success'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  el.innerHTML = `${icon} ${message}`;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+if (checkSession()) {
+  showApp();
+}
+</script>
+</body>
+</html>
