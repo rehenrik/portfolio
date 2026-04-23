@@ -53,6 +53,20 @@ body {
 img { display: block; max-width: 100%; height: auto; -webkit-user-drag: none; user-select: none; }
 a { color: inherit; text-decoration: none; }
 
+/* ── TYPOGRAPHY DEFAULTS ───────────────────────────────────── */
+/* Fallback scale — the admin can override via injected <style id="typography-tokens"> */
+h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.03em; line-height: 1.1; }
+h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 4vw, 3rem);     letter-spacing: -0.02em; line-height: 1.2; }
+h3 { font-family: var(--sans);  font-weight: 500; font-size: clamp(1.5rem, 3vw, 2rem);   letter-spacing: -0.01em; line-height: 1.3; }
+h4 { font-family: var(--sans);  font-weight: 500; font-size: clamp(1.25rem, 2.5vw, 1.5rem); letter-spacing: -0.01em; line-height: 1.4; }
+h5 { font-family: var(--sans);  font-weight: 500; font-size: clamp(1.1rem, 2vw, 1.25rem);   letter-spacing: -0.01em; line-height: 1.4; }
+.paragraph-xl      { font-family: var(--sans); font-weight: 300; font-size: clamp(1.25rem, 2.5vw, 1.5rem); letter-spacing: -0.01em; line-height: 1.6; }
+.paragraph-l       { font-family: var(--sans); font-weight: 300; font-size: clamp(1.1rem, 2vw, 1.25rem);   letter-spacing: -0.01em; line-height: 1.6; }
+.paragraph-m       { font-family: var(--sans); font-weight: 300; font-size: 1rem;     letter-spacing: -0.01em; line-height: 1.6; }
+.paragraph-default { font-family: var(--sans); font-weight: 400; font-size: 1rem;     letter-spacing: -0.01em; line-height: 1.6; }
+.paragraph-s       { font-family: var(--sans); font-weight: 400; font-size: 0.875rem; letter-spacing: -0.01em; line-height: 1.5; }
+.paragraph-xs      { font-family: var(--sans); font-weight: 400; font-size: 0.75rem;  letter-spacing: -0.01em; line-height: 1.4; }
+
 /* ── TEXT SELECTION ────────────────────────────────────────── */
 ::selection { background: var(--accent); color: #fff; }
 

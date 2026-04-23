@@ -64,6 +64,92 @@ async function getProjectsData() {
   return await window._projectsDataPromise;
 }
 
+// ── Typography CMS — fetch, cache, inject ────────────────────
+const TYPO_CACHE_KEY = 'typography_css_v1';
+
+function buildTypographyCSS(fonts, tokens) {
+  let css = '';
+  const faceRules = [];
+  const roleToFamily = {};
+
+  for (const f of (fonts || [])) {
+    const srcs = [];
+    if (f.woff2_url) srcs.push(`url("${f.woff2_url}") format("woff2")`);
+    if (f.woff_url)  srcs.push(`url("${f.woff_url}") format("woff")`);
+    if (f.ttf_url)   srcs.push(`url("${f.ttf_url}") format("truetype")`);
+    if (f.eot_url)   srcs.push(`url("${f.eot_url}") format("embedded-opentype")`);
+    if (f.svg_url)   srcs.push(`url("${f.svg_url}#${f.family_name}") format("svg")`);
+    if (!srcs.length) continue;
+    faceRules.push(
+      `@font-face{font-family:"${f.family_name}";font-style:normal;font-display:swap;` +
+      `font-weight:${f.weight_min || 400} ${f.weight_max || f.weight_min || 400};` +
+      `src:${srcs.join(',')};}`
+    );
+    if (!roleToFamily[f.role]) roleToFamily[f.role] = f.family_name;
+  }
+  css += faceRules.join('\n');
+
+  const rootBits = [];
+  if (roleToFamily.serif) rootBits.push(`--serif:"${roleToFamily.serif}",Georgia,serif;`);
+  if (roleToFamily.sans)  rootBits.push(`--sans:"${roleToFamily.sans}",system-ui,sans-serif;`);
+  if (roleToFamily.mono)  rootBits.push(`--mono:"${roleToFamily.mono}",ui-monospace,monospace;`);
+  if (rootBits.length) css += `\n:root{${rootBits.join('')}}`;
+
+  for (const t of (tokens || [])) {
+    if (!t.selector) continue;
+    const sel = t.selector.startsWith('paragraph-') || t.selector.startsWith('.')
+      ? (t.selector.startsWith('.') ? t.selector : '.' + t.selector)
+      : t.selector;
+    const fontVar = t.font_role === 'serif' ? 'var(--serif)'
+                  : t.font_role === 'mono'  ? 'var(--mono)'
+                  : 'var(--sans)';
+    css += `\n${sel}{font-family:${fontVar};font-weight:${t.font_weight || '400'};` +
+           `font-size:${t.font_size || '1rem'};letter-spacing:${t.letter_spacing || '0'};` +
+           `line-height:${t.line_height || '1.5'};}`;
+  }
+  return css;
+}
+
+function applyTypographyCSS(css) {
+  if (!css) return;
+  let style = document.getElementById('typography-tokens');
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'typography-tokens';
+    document.head.appendChild(style);
+  }
+  if (style.textContent !== css) style.textContent = css;
+}
+
+// Typography CSS is only injected on the public site — admin has its own styles
+// and doesn't need (or want) the tokens bleeding into its UI.
+if (_isPublicPage) {
+  (function applyCachedTypography() {
+    try {
+      const cached = localStorage.getItem(TYPO_CACHE_KEY);
+      if (cached) applyTypographyCSS(cached);
+    } catch (e) { /* ignore */ }
+  })();
+
+  window._typographyPromise = Promise.all([
+    fetch(SUPABASE_REST + '/fonts?select=*', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => []),
+    fetch(SUPABASE_REST + '/typography_tokens?select=*', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => [])
+  ]).then(([fonts, tokens]) => {
+    const css = buildTypographyCSS(fonts, tokens);
+    try { localStorage.setItem(TYPO_CACHE_KEY, css); } catch (e) { /* quota */ }
+    applyTypographyCSS(css);
+    return { fonts, tokens, css };
+  }).catch(() => ({ fonts: [], tokens: [], css: '' }));
+} else {
+  window._typographyPromise = Promise.resolve({ fonts: [], tokens: [], css: '' });
+}
+
+async function getTypographyData() {
+  return await window._typographyPromise;
+}
+
 // ── SDK loader (only used by admin.html for writes/auth/storage) ─
 window._supabaseClient = null;
 

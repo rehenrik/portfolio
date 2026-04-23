@@ -806,6 +806,162 @@
       height: 100%;
     }
 
+    /* ── Typography editor ─────────────────────────────────────── */
+    .typo-table {
+      display: grid;
+      gap: 6px;
+    }
+    .typo-row {
+      display: grid;
+      grid-template-columns: 120px 90px 80px 1fr 110px 80px auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .typo-row.dirty { border-color: var(--accent); }
+    .typo-row .selector-label {
+      font-weight: 500;
+      font-size: 0.82rem;
+      color: var(--fg);
+    }
+    .typo-row input,
+    .typo-row select {
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: inherit;
+    }
+    .typo-row input:focus,
+    .typo-row select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .typo-field-label {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--fg-muted);
+      margin-bottom: 2px;
+    }
+    .typo-row .save-cell { display: flex; justify-content: flex-end; }
+    .typo-row .save-btn {
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      opacity: 0.4;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .typo-row.dirty .save-btn { opacity: 1; pointer-events: auto; }
+    .typo-header {
+      display: grid;
+      grid-template-columns: 120px 90px 80px 1fr 110px 80px auto;
+      gap: 8px;
+      padding: 0 8px 4px;
+      font-size: 0.7rem;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Fonts list ────────────────────────────────────────────── */
+    .fonts-list { display: flex; flex-direction: column; gap: 6px; }
+    .font-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .font-row .family {
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .font-row .family-sample { color: var(--fg); }
+    .font-row .role-tag {
+      font-size: 0.62rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(254,67,17,0.15);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .font-row .weight-range { font-size: 0.75rem; color: var(--fg-muted); }
+    .font-row .formats {
+      display: flex;
+      gap: 3px;
+    }
+    .format-badge {
+      font-size: 0.58rem;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.3);
+      color: rgba(255,255,255,0.85);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .format-badge.missing {
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--fg-muted);
+    }
+
+    /* ── Font upload modal ─────────────────────────────────────── */
+    .font-upload-files {
+      display: grid;
+      gap: 6px;
+    }
+    .font-upload-files label {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.78rem;
+    }
+    .font-upload-files label .fmt {
+      font-weight: 600;
+      font-size: 0.7rem;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+    }
+    .font-upload-files input[type=file] {
+      font-size: 0.72rem;
+      color: var(--fg-muted);
+    }
+    .font-upload-files .required { color: var(--accent); }
+
+    @media (max-width: 900px) {
+      .typo-row,
+      .typo-header { grid-template-columns: 110px 80px 80px 1fr auto; }
+      .typo-row .letter-cell,
+      .typo-row .line-cell,
+      .typo-header .letter-cell,
+      .typo-header .line-cell { display: none; }
+      .font-row { grid-template-columns: 1fr auto auto; }
+      .font-row .formats,
+      .font-row .weight-range { grid-column: 1 / -1; }
+    }
+
     @media (max-width: 600px) {
       .form-row { grid-template-columns: 1fr; }
       .project-row { grid-template-columns: 28px 44px 1fr auto; }
@@ -911,6 +1067,138 @@
       </div>
     </div>
 
+    <!-- Divider -->
+    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
+
+    <!-- Typography section -->
+    <div class="section-top">
+      <h2>
+        Typography
+        <span class="count-badge" id="typoCountBadge">0</span>
+      </h2>
+      <button class="btn btn-ghost btn-sm" id="resetTypoBtn" title="Restore seed defaults">Reset defaults</button>
+    </div>
+
+    <div class="typo-header">
+      <span>Selector</span>
+      <span>Font role</span>
+      <span>Weight</span>
+      <span>Size</span>
+      <span class="letter-cell">Letter spacing</span>
+      <span class="line-cell">Line height</span>
+      <span></span>
+    </div>
+
+    <div class="typo-table" id="typoTable">
+      <div class="loading-row">
+        <div class="spinner"></div>
+        Loading tokens…
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
+
+    <!-- Fonts section -->
+    <div class="section-top">
+      <h2>
+        Fonts
+        <span class="count-badge" id="fontsCountBadge">0</span>
+      </h2>
+      <button class="btn btn-primary btn-sm" id="newFontBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Upload font
+      </button>
+    </div>
+
+    <div class="fonts-list" id="fontsList">
+      <div class="loading-row">
+        <div class="spinner"></div>
+        Loading fonts…
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  FONT UPLOAD MODAL                                      -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="fontModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Upload font</h3>
+      <button class="btn btn-ghost btn-icon" id="closeFontModalBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="field">
+        <label>Family name *</label>
+        <input type="text" id="fontFamilyInput" placeholder="e.g. Inter" />
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Role *</label>
+          <select id="fontRoleInput">
+            <option value="sans">Sans (body)</option>
+            <option value="serif">Serif (display)</option>
+            <option value="mono">Mono</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Weight min</label>
+          <input type="number" id="fontWeightMinInput" value="400" min="100" max="900" step="50" />
+        </div>
+        <div class="field">
+          <label>Weight max</label>
+          <input type="number" id="fontWeightMaxInput" value="400" min="100" max="900" step="50" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Font files <span style="color:var(--fg-muted);font-weight:400">(WOFF2 is required; others are optional)</span></label>
+        <div class="font-upload-files">
+          <label>
+            <span class="fmt">WOFF2 <span class="required">*</span></span>
+            <input type="file" id="fontFileWoff2" accept=".woff2,font/woff2" />
+          </label>
+          <label>
+            <span class="fmt">WOFF</span>
+            <input type="file" id="fontFileWoff" accept=".woff,font/woff" />
+          </label>
+          <label>
+            <span class="fmt">TTF</span>
+            <input type="file" id="fontFileTtf" accept=".ttf,font/ttf" />
+          </label>
+          <label>
+            <span class="fmt">EOT</span>
+            <input type="file" id="fontFileEot" accept=".eot,application/vnd.ms-fontobject" />
+          </label>
+          <label>
+            <span class="fmt">SVG</span>
+            <input type="file" id="fontFileSvg" accept=".svg,image/svg+xml" />
+          </label>
+        </div>
+      </div>
+
+      <div class="upload-progress" id="fontUploadProgress">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="fontProgressFill"></div>
+        </div>
+        <span id="fontProgressLabel">Uploading…</span>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="cancelFontBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveFontBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save font
+      </button>
+    </div>
   </div>
 </div>
 
@@ -1098,6 +1386,8 @@ function showApp() {
   app.style.display = 'flex';
   loadProjects();
   loadCarouselImages();
+  loadTypography();
+  loadFonts();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1777,6 +2067,300 @@ async function deleteCarouselImage(id, imageUrl) {
     await loadCarouselImages();
   } catch (err) {
     toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TYPOGRAPHY EDITOR
+// ══════════════════════════════════════════════════════════════
+const FONTS_BUCKET   = 'fonts';
+const SEED_TOKENS = [
+  { selector: 'h1',                 font_role: 'serif', font_weight: '400', font_size: 'clamp(2.5rem, 5vw, 4.5rem)',     letter_spacing: '-0.03em', line_height: '1.1' },
+  { selector: 'h2',                 font_role: 'serif', font_weight: '400', font_size: 'clamp(2rem, 4vw, 3rem)',         letter_spacing: '-0.02em', line_height: '1.2' },
+  { selector: 'h3',                 font_role: 'sans',  font_weight: '500', font_size: 'clamp(1.5rem, 3vw, 2rem)',       letter_spacing: '-0.01em', line_height: '1.3' },
+  { selector: 'h4',                 font_role: 'sans',  font_weight: '500', font_size: 'clamp(1.25rem, 2.5vw, 1.5rem)',  letter_spacing: '-0.01em', line_height: '1.4' },
+  { selector: 'h5',                 font_role: 'sans',  font_weight: '500', font_size: 'clamp(1.1rem, 2vw, 1.25rem)',    letter_spacing: '-0.01em', line_height: '1.4' },
+  { selector: 'paragraph-xl',       font_role: 'sans',  font_weight: '300', font_size: 'clamp(1.25rem, 2.5vw, 1.5rem)',  letter_spacing: '-0.01em', line_height: '1.6' },
+  { selector: 'paragraph-l',        font_role: 'sans',  font_weight: '300', font_size: 'clamp(1.1rem, 2vw, 1.25rem)',    letter_spacing: '-0.01em', line_height: '1.6' },
+  { selector: 'paragraph-m',        font_role: 'sans',  font_weight: '300', font_size: '1rem',                            letter_spacing: '-0.01em', line_height: '1.6' },
+  { selector: 'paragraph-default',  font_role: 'sans',  font_weight: '400', font_size: '1rem',                            letter_spacing: '-0.01em', line_height: '1.6' },
+  { selector: 'paragraph-s',        font_role: 'sans',  font_weight: '400', font_size: '0.875rem',                        letter_spacing: '-0.01em', line_height: '1.5' },
+  { selector: 'paragraph-xs',       font_role: 'sans',  font_weight: '400', font_size: '0.75rem',                         letter_spacing: '-0.01em', line_height: '1.4' }
+];
+
+let typographyTokens = [];
+
+async function loadTypography() {
+  const table = document.getElementById('typoTable');
+  const badge = document.getElementById('typoCountBadge');
+  table.innerHTML = '<div class="loading-row"><div class="spinner"></div>Loading tokens…</div>';
+
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('typography_tokens')
+      .select('*')
+      .order('selector', { ascending: true });
+    if (error) throw error;
+
+    // Ensure all 11 seeds exist — fill missing ones in memory for editing.
+    const byKey = {};
+    (data || []).forEach(t => byKey[t.selector] = t);
+    typographyTokens = SEED_TOKENS.map(s => byKey[s.selector] || { ...s });
+
+    badge.textContent = typographyTokens.length;
+    renderTypoTable();
+  } catch (err) {
+    table.innerHTML = `<div class="error-msg" style="display:block">Error loading tokens: ${err.message}</div>`;
+  }
+}
+
+function renderTypoTable() {
+  const table = document.getElementById('typoTable');
+  table.innerHTML = '';
+  typographyTokens.forEach((t, idx) => {
+    const row = document.createElement('div');
+    row.className = 'typo-row';
+    row.dataset.idx = idx;
+    row.innerHTML = `
+      <div class="selector-label">${t.selector}</div>
+      <select data-k="font_role">
+        <option value="sans"${t.font_role==='sans'?' selected':''}>sans</option>
+        <option value="serif"${t.font_role==='serif'?' selected':''}>serif</option>
+        <option value="mono"${t.font_role==='mono'?' selected':''}>mono</option>
+      </select>
+      <input type="text" data-k="font_weight" value="${esc(t.font_weight)}" placeholder="400" />
+      <input type="text" data-k="font_size" value="${esc(t.font_size)}" placeholder="1rem" />
+      <input class="letter-cell" type="text" data-k="letter_spacing" value="${esc(t.letter_spacing)}" placeholder="0" />
+      <input class="line-cell" type="text" data-k="line_height" value="${esc(t.line_height)}" placeholder="1.5" />
+      <div class="save-cell"><button class="save-btn">Save</button></div>
+    `;
+    row.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', () => row.classList.add('dirty'));
+      el.addEventListener('change', () => row.classList.add('dirty'));
+    });
+    row.querySelector('.save-btn').addEventListener('click', () => saveTypoRow(idx, row));
+    table.appendChild(row);
+  });
+}
+
+function esc(v) {
+  if (v == null) return '';
+  return String(v).replace(/"/g, '&quot;');
+}
+
+async function saveTypoRow(idx, rowEl) {
+  const t = typographyTokens[idx];
+  const payload = { selector: t.selector };
+  rowEl.querySelectorAll('input, select').forEach(el => {
+    payload[el.dataset.k] = el.value.trim();
+  });
+  try {
+    const client = await getClient();
+    const { error } = await client
+      .from('typography_tokens')
+      .upsert(payload, { onConflict: 'selector' });
+    if (error) throw error;
+    Object.assign(t, payload);
+    rowEl.classList.remove('dirty');
+    toast(`Saved ${t.selector}`, 'success');
+    invalidateTypoCache();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+document.getElementById('resetTypoBtn').addEventListener('click', async () => {
+  if (!confirm('Reset ALL typography tokens to the default scale? This cannot be undone.')) return;
+  try {
+    const client = await getClient();
+    const { error } = await client
+      .from('typography_tokens')
+      .upsert(SEED_TOKENS, { onConflict: 'selector' });
+    if (error) throw error;
+    toast('Tokens reset to defaults', 'success');
+    invalidateTypoCache();
+    await loadTypography();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+});
+
+// Invalidate the cache the public site uses so next load pulls fresh CSS
+function invalidateTypoCache() {
+  try { localStorage.removeItem('typography_css_v1'); } catch (e) {}
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FONTS MANAGER
+// ══════════════════════════════════════════════════════════════
+let fonts = [];
+
+async function loadFonts() {
+  const list = document.getElementById('fontsList');
+  const badge = document.getElementById('fontsCountBadge');
+  list.innerHTML = '<div class="loading-row"><div class="spinner"></div>Loading fonts…</div>';
+
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('fonts')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+
+    fonts = data || [];
+    badge.textContent = fonts.length;
+    renderFontsList();
+  } catch (err) {
+    list.innerHTML = `<div class="error-msg" style="display:block">Error loading fonts: ${err.message}</div>`;
+  }
+}
+
+function renderFontsList() {
+  const list = document.getElementById('fontsList');
+  if (!fonts.length) {
+    list.innerHTML = `
+      <div style="padding:2rem;text-align:center;color:var(--fg-muted);border:1px dashed var(--border);border-radius:10px;">
+        No fonts uploaded yet — the site uses its fallback stacks.
+      </div>`;
+    return;
+  }
+  list.innerHTML = '';
+  fonts.forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'font-row';
+    const badges = ['woff2','woff','ttf','eot','svg'].map(fmt => {
+      const has = !!f[`${fmt}_url`];
+      return `<span class="format-badge${has ? '' : ' missing'}">${fmt}</span>`;
+    }).join('');
+    row.innerHTML = `
+      <div class="family">
+        <span class="family-sample" style="font-family:'${esc(f.family_name)}',system-ui,sans-serif">${esc(f.family_name)}</span>
+        <span class="role-tag">${f.role}</span>
+      </div>
+      <div class="weight-range">${f.weight_min || 400}${(f.weight_max && f.weight_max !== f.weight_min) ? '–' + f.weight_max : ''}</div>
+      <div class="formats">${badges}</div>
+      <button class="btn btn-ghost btn-sm del" style="color:#ef4444">Delete</button>
+    `;
+    row.querySelector('.del').addEventListener('click', () => deleteFont(f));
+    list.appendChild(row);
+  });
+}
+
+async function deleteFont(font) {
+  if (!confirm(`Delete font "${font.family_name}"? Its files will be removed from storage.`)) return;
+  try {
+    const client = await getClient();
+    // Remove any uploaded files from storage
+    const paths = ['woff2_url','woff_url','ttf_url','eot_url','svg_url']
+      .map(k => font[k])
+      .filter(Boolean)
+      .map(url => url.split('/').slice(-1)[0]);
+    if (paths.length) {
+      await client.storage.from(FONTS_BUCKET).remove(paths);
+    }
+    const { error } = await client.from('fonts').delete().eq('id', font.id);
+    if (error) throw error;
+    toast(`${font.family_name} deleted`, 'success');
+    invalidateTypoCache();
+    await loadFonts();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ── Font upload modal ────────────────────────────────────────
+const fontModal = document.getElementById('fontModal');
+
+document.getElementById('newFontBtn').addEventListener('click', openFontModal);
+document.getElementById('closeFontModalBtn').addEventListener('click', closeFontModal);
+document.getElementById('cancelFontBtn').addEventListener('click', closeFontModal);
+fontModal.addEventListener('click', e => { if (e.target === fontModal) closeFontModal(); });
+
+function openFontModal() {
+  document.getElementById('fontFamilyInput').value = '';
+  document.getElementById('fontRoleInput').value = 'sans';
+  document.getElementById('fontWeightMinInput').value = 400;
+  document.getElementById('fontWeightMaxInput').value = 400;
+  ['Woff2','Woff','Ttf','Eot','Svg'].forEach(f => {
+    document.getElementById('fontFile' + f).value = '';
+  });
+  document.getElementById('fontUploadProgress').classList.remove('visible');
+  fontModal.classList.add('open');
+}
+
+function closeFontModal() {
+  fontModal.classList.remove('open');
+}
+
+document.getElementById('saveFontBtn').addEventListener('click', saveFont);
+
+async function saveFont() {
+  const family = document.getElementById('fontFamilyInput').value.trim();
+  const role   = document.getElementById('fontRoleInput').value;
+  const wMin   = parseInt(document.getElementById('fontWeightMinInput').value) || 400;
+  const wMax   = parseInt(document.getElementById('fontWeightMaxInput').value) || wMin;
+
+  if (!family) { toast('Family name is required', 'error'); return; }
+
+  const files = {
+    woff2: document.getElementById('fontFileWoff2').files[0],
+    woff:  document.getElementById('fontFileWoff').files[0],
+    ttf:   document.getElementById('fontFileTtf').files[0],
+    eot:   document.getElementById('fontFileEot').files[0],
+    svg:   document.getElementById('fontFileSvg').files[0]
+  };
+
+  if (!files.woff2) { toast('WOFF2 file is required', 'error'); return; }
+
+  const progress = document.getElementById('fontUploadProgress');
+  const fill     = document.getElementById('fontProgressFill');
+  const label    = document.getElementById('fontProgressLabel');
+  progress.classList.add('visible');
+
+  try {
+    const client = await getClient();
+    const urls = {};
+    const slug = family.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const total = Object.values(files).filter(Boolean).length;
+    let done = 0;
+
+    for (const [fmt, file] of Object.entries(files)) {
+      if (!file) continue;
+      label.textContent = `Uploading ${fmt.toUpperCase()}…`;
+      const path = `${slug}-${Date.now()}.${fmt}`;
+      const { error: uploadErr } = await client.storage
+        .from(FONTS_BUCKET)
+        .upload(path, file, { cacheControl: '31536000', upsert: false, contentType: file.type || 'application/octet-stream' });
+      if (uploadErr) throw uploadErr;
+      const { data: { publicUrl } } = client.storage.from(FONTS_BUCKET).getPublicUrl(path);
+      urls[`${fmt}_url`] = publicUrl;
+      done++;
+      fill.style.width = Math.round((done / total) * 100) + '%';
+    }
+
+    label.textContent = 'Saving font record…';
+    const { error: insertErr } = await client
+      .from('fonts')
+      .insert({
+        family_name: family,
+        role,
+        weight_min: wMin,
+        weight_max: wMax,
+        ...urls
+      });
+    if (insertErr) throw insertErr;
+
+    toast(`${family} uploaded`, 'success');
+    invalidateTypoCache();
+    closeFontModal();
+    await loadFonts();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  } finally {
+    progress.classList.remove('visible');
+    fill.style.width = '0%';
   }
 }
 
