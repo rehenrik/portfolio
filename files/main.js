@@ -220,7 +220,7 @@ class CardStreamController {
   thumbUrl(src) {
     if (src && src.includes('/storage/v1/object/public/')) {
       return src.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-        + '?width=700&quality=55&format=webp';
+        + '?width=1200&quality=70&format=webp';
     }
     return src; // external/fallback URLs — use as-is
   }
@@ -237,24 +237,15 @@ class CardStreamController {
         }
 
         const src = card.dataset.bg;
-        if (!src) { this.io.unobserve(card); return; }
+        const img = card.querySelector('img');
+        if (!src || !img) { this.io.unobserve(card); return; }
 
-        const thumb = this.thumbUrl(src);
-        card.style.setProperty('--bg', `url("${thumb}")`);
-
-        const img = new Image();
-        img.decoding = 'async';
         img.onload = () => {
-          const w = img.naturalWidth  || 1600;
-          const h = img.naturalHeight || 1000;
-          card.style.setProperty('--ratio', `${w} / ${h}`);
+          card.style.setProperty('--ratio', `${img.naturalWidth} / ${img.naturalHeight}`);
           this.markCardLoaded();
         };
-        img.onerror = () => {
-          card.style.removeProperty('--bg');
-          this.markCardLoaded();
-        };
-        img.src = thumb;
+        img.onerror = () => this.markCardLoaded();
+        img.src = this.thumbUrl(src);
         this.io.unobserve(card);
       });
     }, { root: this.container, rootMargin: '200px' });
@@ -338,7 +329,6 @@ class CardStreamController {
     wrapper.className = "card-wrapper";
     const card = document.createElement("div");
     card.className = "card";
-    card.setAttribute("role", "img");
     if (item.label) card.setAttribute("aria-label", item.label);
     card.dataset.bg   = item.src;
     card.dataset.type = item.type || 'image';
@@ -356,6 +346,13 @@ class CardStreamController {
       }, { once: true });
       card.appendChild(video);
       this.playObserver.observe(video);
+    } else {
+      const img = document.createElement('img');
+      img.alt       = item.label || '';
+      img.decoding  = 'async';
+      img.draggable = false;
+      // src is set lazily by the IntersectionObserver
+      card.appendChild(img);
     }
 
     this.io.observe(card);
@@ -460,81 +457,150 @@ class CardStreamController {
 
   // ── MODAL ────────────────────────────────────────────────────
   openModal(idx) {
-    this.modalOpen  = true;
-    this.modalIdx   = idx;
+    this.modalOpen    = true;
+    this.modalIdx     = idx;
     this.wasAnimating = this.isAnimating;
     this.isAnimating  = false; // pause carousel
 
-    const modal = document.getElementById('carouselModal');
-    modal?.classList.add('open');
+    const card        = this.cards[idx];
+    const sourceEl    = this.dragTarget; // .card div clicked
+    const sourceMedia = sourceEl?.querySelector('img, video');
+    const modal       = document.getElementById('carouselModal');
+    const modalImg    = document.getElementById('carouselModalImg');
+    const modalVid    = document.getElementById('carouselModalVideo');
+    const counter     = document.getElementById('carouselModalCounter');
+    if (!card || !modal) return;
+
+    if (counter) counter.textContent = `${idx + 1} / ${this.cards.length}`;
     document.body.style.overflow = 'hidden';
-    this.loadModalImage(idx);
+    modal.classList.add('open');
+
+    if (card.type === 'video') {
+      modalImg.style.display = 'none';
+      modalVid.style.display = '';
+      // Hint intrinsic dims so layout resolves before metadata arrives
+      if (sourceMedia?.videoWidth)  modalVid.width  = sourceMedia.videoWidth;
+      if (sourceMedia?.videoHeight) modalVid.height = sourceMedia.videoHeight;
+      modalVid.src = card.src;
+      modalVid.load();
+      modalVid.play().catch(() => {});
+    } else {
+      modalVid.style.display = 'none';
+      modalImg.style.display = '';
+      // Hint dims from the already-loaded carousel img so layout is correct on first frame
+      if (sourceMedia?.naturalWidth)  modalImg.width  = sourceMedia.naturalWidth;
+      if (sourceMedia?.naturalHeight) modalImg.height = sourceMedia.naturalHeight;
+      // Same URL as the carousel thumb → browser serves from cache, no second download
+      modalImg.src = sourceMedia?.src || this.thumbUrl(card.src);
+      modalImg.alt = card.label || '';
+    }
+
+    if (sourceEl) sourceEl.style.visibility = 'hidden';
+    this.activeSourceEl = sourceEl;
+
+    // FLIP after layout settles
+    const target = card.type === 'video' ? modalVid : modalImg;
+    requestAnimationFrame(() => this.flipMedia(sourceMedia, target, 'open'));
   }
 
   closeModal() {
+    if (!this.modalOpen) return;
     this.modalOpen = false;
-    const modal = document.getElementById('carouselModal');
-    modal?.classList.remove('open');
-    document.body.style.overflow = '';
-    this.isAnimating = true;
-    this.lastTime    = performance.now();
-    // Stop modal video if playing
-    const mv = document.getElementById('carouselModalVideo');
-    if (mv) { mv.pause(); mv.removeAttribute('src'); mv.load(); mv.classList.remove('loaded'); }
+
+    const modal      = document.getElementById('carouselModal');
+    const modalImg   = document.getElementById('carouselModalImg');
+    const modalVid   = document.getElementById('carouselModalVideo');
+    const sourceEl   = this.activeSourceEl;
+    const sourceMedia = sourceEl?.querySelector('img, video');
+    const isVideo    = this.cards[this.modalIdx]?.type === 'video';
+    const target     = isVideo ? modalVid : modalImg;
+
+    const finish = () => {
+      modal?.classList.remove('open');
+      document.body.style.overflow = '';
+      if (sourceEl) sourceEl.style.visibility = '';
+      if (modalVid) { modalVid.pause(); modalVid.removeAttribute('src'); modalVid.load(); }
+      this.isAnimating = true;
+      this.lastTime    = performance.now();
+      this.activeSourceEl = null;
+    };
+
+    const anim = this.flipMedia(sourceMedia, target, 'close');
+    if (anim) anim.onfinish = finish; else finish();
+  }
+
+  // FLIP animation between a carousel card and the modal media element.
+  // direction: 'open' (card → modal) or 'close' (modal → card).
+  flipMedia(sourceMedia, targetMedia, direction) {
+    if (!sourceMedia || !targetMedia) return null;
+    const sourceRect = sourceMedia.getBoundingClientRect();
+    const targetRect = targetMedia.getBoundingClientRect();
+    if (!sourceRect.width || !targetRect.width) return null;
+
+    const dx = sourceRect.left - targetRect.left + (sourceRect.width  - targetRect.width)  / 2;
+    const dy = sourceRect.top  - targetRect.top  + (sourceRect.height - targetRect.height) / 2;
+    const sx = sourceRect.width  / targetRect.width;
+    const sy = sourceRect.height / targetRect.height;
+
+    const fromCard = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+    const atModal  = 'translate(0, 0) scale(1, 1)';
+    const keyframes = direction === 'open'
+      ? [{ transform: fromCard }, { transform: atModal }]
+      : [{ transform: atModal }, { transform: fromCard }];
+
+    return targetMedia.animate(keyframes, {
+      duration: direction === 'open' ? 380 : 320,
+      easing: direction === 'open'
+        ? 'cubic-bezier(0.22, 1, 0.36, 1)'  // ease-out for opening
+        : 'cubic-bezier(0.32, 0, 0.67, 0)', // ease-in for closing
+      fill: 'both'
+    });
   }
 
   modalNav(dir) {
     const total = this.cards.length;
     this.modalIdx = (this.modalIdx + dir + total) % total;
-    this.loadModalImage(this.modalIdx);
+    this.swapModalMedia(this.modalIdx);
   }
 
-  loadModalImage(idx) {
-    const card    = this.cards[idx];
-    const img     = document.getElementById('carouselModalImg');
-    const mv      = document.getElementById('carouselModalVideo');
-    const spinner = document.getElementById('carouselModalSpinner');
-    const counter = document.getElementById('carouselModalCounter');
+  swapModalMedia(idx) {
+    const card     = this.cards[idx];
+    const modalImg = document.getElementById('carouselModalImg');
+    const modalVid = document.getElementById('carouselModalVideo');
+    const counter  = document.getElementById('carouselModalCounter');
     if (!card) return;
-
     if (counter) counter.textContent = `${idx + 1} / ${this.cards.length}`;
 
-    // Reset both elements
-    if (img) { img.classList.remove('loaded'); img.src = ''; img.style.display = 'none'; }
-    if (mv)  { mv.pause(); mv.removeAttribute('src'); mv.load(); mv.classList.remove('loaded'); mv.style.display = 'none'; }
-    spinner?.classList.add('visible');
+    // Restore previous source card visibility, then point activeSourceEl at the
+    // new card so close-animation lands on the right place.
+    if (this.activeSourceEl) this.activeSourceEl.style.visibility = '';
+    const wrappers = this.cardLine.querySelectorAll('.card-wrapper');
+    for (const w of wrappers) {
+      const c = w.firstElementChild;
+      if (c && c.dataset.bg === card.src) { this.activeSourceEl = c; break; }
+    }
+    if (this.activeSourceEl) this.activeSourceEl.style.visibility = 'hidden';
+
+    const newSourceMedia = this.activeSourceEl?.querySelector('img, video');
 
     if (card.type === 'video') {
-      if (!mv) return;
-      mv.style.display = '';
-      mv.src = card.src;
-      mv.load();
-      mv.addEventListener('canplay', () => {
-        mv.classList.add('loaded');
-        spinner?.classList.remove('visible');
-        mv.play().catch(() => {});
-      }, { once: true });
-      mv.addEventListener('error', () => {
-        mv.classList.add('loaded');
-        spinner?.classList.remove('visible');
-      }, { once: true });
+      modalImg.style.display = 'none';
+      modalVid.style.display = '';
+      if (newSourceMedia?.videoWidth)  modalVid.width  = newSourceMedia.videoWidth;
+      if (newSourceMedia?.videoHeight) modalVid.height = newSourceMedia.videoHeight;
+      modalVid.src = card.src;
+      modalVid.load();
+      modalVid.play().catch(() => {});
     } else {
-      if (!img) return;
-      img.style.display = '';
-      const fullImg = new Image();
-      fullImg.decoding = 'async';
-      fullImg.onload = () => {
-        img.src = card.src;
-        img.alt = card.label || '';
-        img.classList.add('loaded');
-        spinner?.classList.remove('visible');
-      };
-      fullImg.onerror = () => {
-        img.src = card.src;
-        img.classList.add('loaded');
-        spinner?.classList.remove('visible');
-      };
-      fullImg.src = card.src;
+      modalVid.pause();
+      modalVid.removeAttribute('src');
+      modalVid.load();
+      modalVid.style.display = 'none';
+      modalImg.style.display = '';
+      if (newSourceMedia?.naturalWidth)  modalImg.width  = newSourceMedia.naturalWidth;
+      if (newSourceMedia?.naturalHeight) modalImg.height = newSourceMedia.naturalHeight;
+      modalImg.src = newSourceMedia?.src || this.thumbUrl(card.src);
+      modalImg.alt = card.label || '';
     }
   }
 
