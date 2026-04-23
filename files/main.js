@@ -478,18 +478,16 @@ class CardStreamController {
     if (card.type === 'video') {
       modalImg.style.display = 'none';
       modalVid.style.display = '';
-      // Hint intrinsic dims so layout resolves before metadata arrives
-      if (sourceMedia?.videoWidth)  modalVid.width  = sourceMedia.videoWidth;
-      if (sourceMedia?.videoHeight) modalVid.height = sourceMedia.videoHeight;
+      modalVid.removeAttribute('width');
+      modalVid.removeAttribute('height');
       modalVid.src = card.src;
       modalVid.load();
       modalVid.play().catch(() => {});
     } else {
       modalVid.style.display = 'none';
       modalImg.style.display = '';
-      // Hint dims from the already-loaded carousel img so layout is correct on first frame
-      if (sourceMedia?.naturalWidth)  modalImg.width  = sourceMedia.naturalWidth;
-      if (sourceMedia?.naturalHeight) modalImg.height = sourceMedia.naturalHeight;
+      modalImg.removeAttribute('width');
+      modalImg.removeAttribute('height');
       // Same URL as the carousel thumb → browser serves from cache, no second download
       modalImg.src = sourceMedia?.src || this.thumbUrl(card.src);
       modalImg.alt = card.label || '';
@@ -498,9 +496,15 @@ class CardStreamController {
     if (sourceEl) sourceEl.style.visibility = 'hidden';
     this.activeSourceEl = sourceEl;
 
-    // FLIP after layout settles
+    // FLIP only after the modal media has actual dims (width: auto needs the
+    // image/video to be loaded before getBoundingClientRect returns a real box).
     const target = card.type === 'video' ? modalVid : modalImg;
-    requestAnimationFrame(() => this.flipMedia(sourceMedia, target, 'open'));
+    const startFlip = () => requestAnimationFrame(() => this.flipMedia(sourceMedia, target, 'open'));
+    const isReady = card.type === 'video'
+      ? (target.readyState >= 1 && target.videoWidth > 0)
+      : (target.complete && target.naturalWidth > 0);
+    if (isReady) startFlip();
+    else target.addEventListener(card.type === 'video' ? 'loadedmetadata' : 'load', startFlip, { once: true });
   }
 
   closeModal() {
@@ -586,8 +590,8 @@ class CardStreamController {
     if (card.type === 'video') {
       modalImg.style.display = 'none';
       modalVid.style.display = '';
-      if (newSourceMedia?.videoWidth)  modalVid.width  = newSourceMedia.videoWidth;
-      if (newSourceMedia?.videoHeight) modalVid.height = newSourceMedia.videoHeight;
+      modalVid.removeAttribute('width');
+      modalVid.removeAttribute('height');
       modalVid.src = card.src;
       modalVid.load();
       modalVid.play().catch(() => {});
@@ -597,8 +601,8 @@ class CardStreamController {
       modalVid.load();
       modalVid.style.display = 'none';
       modalImg.style.display = '';
-      if (newSourceMedia?.naturalWidth)  modalImg.width  = newSourceMedia.naturalWidth;
-      if (newSourceMedia?.naturalHeight) modalImg.height = newSourceMedia.naturalHeight;
+      modalImg.removeAttribute('width');
+      modalImg.removeAttribute('height');
       modalImg.src = newSourceMedia?.src || this.thumbUrl(card.src);
       modalImg.alt = card.label || '';
     }

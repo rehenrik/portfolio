@@ -461,7 +461,8 @@ main { padding-top: 100px; }
 .carousel-modal-img-wrap video {
   max-width: calc(100vw - 160px);
   max-height: calc(100vh - 80px);
-  object-fit: contain;
+  width: auto;
+  height: auto;
   border-radius: 12px;
   display: block;
   user-select: none;
