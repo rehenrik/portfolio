@@ -77,19 +77,11 @@ async function loadProjects() {
   if (!grid) return;
 
   try {
-    const client = await getSupabaseClient();
-    const { data: projects, error } = await client
-      .from('projects')
-      .select('*')
-      .order('order', { ascending: true });
+    const projects = await getProjectsData();
 
-    if (error) throw error;
-
-    // Clear skeletons
     grid.innerHTML = '';
 
     if (!projects || projects.length === 0) {
-      // Fallback: show demo cards if Supabase has no data yet
       renderFallbackProjects(grid);
       return;
     }
@@ -100,9 +92,7 @@ async function loadProjects() {
     });
 
   } catch (err) {
-    console.warn('Supabase not configured or error fetching projects:', err.message);
-    // Show fallback demo cards so the page still looks good
-    const grid = document.getElementById('projectsGrid');
+    console.warn('Error fetching projects:', err.message);
     if (grid) renderFallbackProjects(grid);
   }
 
@@ -195,26 +185,24 @@ class CardStreamController {
     this.minVelocity = 30;
     this.gapPx = 40;
 
-    this.cards       = [];
-    this.dimCache    = new Map();
-    this.modalOpen   = false;
-    this.modalIdx    = 0;
+    this.cards            = [];
+    this.dimCache         = new Map();
+    this.modalOpen        = false;
+    this.modalIdx         = 0;
+    this.containerVisible = true;
+    this.rafActive        = false;
+    this.loadedCount      = 0;
+    this.fadedIn          = false;
 
     this.io           = this.makeLazyObserver();
-    this.playObserver = this.makePlayObserver(); // plays/pauses videos by visibility
+    this.playObserver = this.makePlayObserver();
     this.initAsync();
   }
 
   async initAsync() {
     try {
-      const client = await getSupabaseClient();
-      const { data, error } = await client
-        .from('carousel_images')
-        .select('*')
-        .eq('active', true)
-        .order('order', { ascending: true });
-
-      if (!error && data && data.length > 0) {
+      const data = await getCarouselData();
+      if (Array.isArray(data) && data.length > 0) {
         this.cards = data.map(r => ({
           src:   r.image_url,
           label: r.label || '',
@@ -222,8 +210,6 @@ class CardStreamController {
                    || /\.(mp4|webm|mov|ogg)(\?|$)/i.test(r.image_url || '')
                    ? 'video' : 'image'
         }));
-      } else {
-        this.cards = [];
       }
     } catch (e) {
       this.cards = [];
@@ -247,6 +233,7 @@ class CardStreamController {
         const card = entry.target;
         if ((card.dataset.type || 'image') === 'video') {
           this.io.unobserve(card);
+          this.markCardLoaded(); // gradient placeholder is enough to count as ready
           return; // videos are handled in createCard directly
         }
 
@@ -263,10 +250,12 @@ class CardStreamController {
           const h = img.naturalHeight || 1000;
           this.dimCache.set(src, { w, h });
           this.applyWidthFromRatio(card, w, h);
+          this.markCardLoaded();
         };
         img.onerror = () => {
-          card.style.setProperty('--bg', this.placeholderBG());
+          card.style.removeProperty('--bg');
           this.applyWidthFromRatio(card, 1600, 1000);
+          this.markCardLoaded();
         };
         img.src = thumb;
         this.io.unobserve(card);
@@ -292,13 +281,57 @@ class CardStreamController {
     this.populate();
     this.updateCardWidths();
     this.setupEventListeners();
-    this.animate();
+    this.observeContainerVisibility();
+    this.startRaf();
+
+    if (!this.cards.length) {
+      this.fadeIn();
+      return;
+    }
+
+    // Wait for the cards likely to be visible on first paint to load,
+    // so the whole row appears together instead of popping in one-by-one.
+    const vw = window.innerWidth;
+    const expectedVisible = vw < 600 ? 2 : (vw < 1200 ? 4 : 6);
+    this.expectedLoad = Math.min(this.cardLine.children.length, expectedVisible);
+
+    // Safety net: reveal even if some images stall on the network
+    setTimeout(() => this.fadeIn(), 1800);
+  }
+
+  markCardLoaded() {
+    this.loadedCount++;
+    if (this.loadedCount >= this.expectedLoad) this.fadeIn();
+  }
+
+  fadeIn() {
+    if (this.fadedIn) return;
+    this.fadedIn = true;
+    this.container.classList.add('loaded');
+  }
+
+  observeContainerVisibility() {
+    if (!('IntersectionObserver' in window)) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      this.containerVisible = entry.isIntersecting;
+      if (this.containerVisible) this.startRaf();
+    }, { rootMargin: '200px' });
+    obs.observe(this.container);
+  }
+
+  startRaf() {
+    if (this.rafActive) return;
+    this.rafActive = true;
+    this.lastTime  = performance.now();
+    requestAnimationFrame(() => this.animate());
   }
 
   populate() {
     this.cardLine.innerHTML = "";
     if (!this.cards.length) return;
-    for (let i = 0; i < 30; i++) {
+    // 12 covers ~2.5x viewport width; cap at 24 to avoid wasting initial work
+    const count = Math.min(24, Math.max(12, this.cards.length));
+    for (let i = 0; i < count; i++) {
       const item = this.cards[i % this.cards.length];
       this.cardLine.appendChild(this.createCard(item));
     }
@@ -311,7 +344,6 @@ class CardStreamController {
     card.className = "card";
     card.setAttribute("role", "img");
     if (item.label) card.setAttribute("aria-label", item.label);
-    card.style.setProperty('--bg', this.placeholderBG());
     card.dataset.bg   = item.src;
     card.dataset.type = item.type || 'image';
 
@@ -320,10 +352,10 @@ class CardStreamController {
       video.loop    = true;
       video.muted   = true;
       video.setAttribute('playsinline', '');
-      video.preload = 'metadata'; // loads first frame only; full data fetched on play()
+      video.preload = 'none'; // upgraded to data only when card enters viewport via play()
       video.src     = item.src;
       card.appendChild(video);
-      this.playObserver.observe(video); // plays when card enters viewport
+      this.playObserver.observe(video);
     }
 
     this.io.observe(card);
@@ -348,18 +380,6 @@ class CardStreamController {
     const hh    = parseFloat(getComputedStyle(wrap).height) || 240;
     const width = Math.max(140, Math.round(hh * (w / h)));
     card.style.setProperty("--card-w", width + "px");
-  }
-
-  placeholderBG() {
-    const c = document.createElement('canvas');
-    c.width = 32; c.height = 20;
-    const ctx = c.getContext('2d');
-    const g = ctx.createLinearGradient(0, 0, 32, 20);
-    g.addColorStop(0, '#0f172a');
-    g.addColorStop(1, '#1e293b');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, 32, 20);
-    return `url("${c.toDataURL()}")`;
   }
 
   setupEventListeners() {
@@ -541,6 +561,11 @@ class CardStreamController {
   }
 
   animate() {
+    if (!this.containerVisible) {
+      this.rafActive = false;
+      return; // resumed by observeContainerVisibility when scrolled back
+    }
+
     const now = performance.now();
     const dt  = (now - this.lastTime) / 1000;
     this.lastTime = now;

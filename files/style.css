@@ -363,7 +363,10 @@ main { padding-top: 100px; }
   align-items: center;
   overflow: hidden;
   margin-bottom: 2rem;
+  opacity: 0;
+  transition: opacity .6s ease;
 }
+.card-stream.loaded { opacity: 1; }
 
 .card-line {
   display: flex;
@@ -399,7 +402,8 @@ main { padding-top: 100px; }
   min-width: 140px;
   border-radius: 12px;
   overflow: hidden;
-  background-image: var(--bg);
+  background-color: #1e293b;
+  background-image: var(--bg, linear-gradient(135deg, #0f172a, #1e293b));
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
