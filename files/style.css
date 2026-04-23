@@ -398,8 +398,7 @@ main { padding-top: 100px; }
 .card {
   position: relative;
   height: 100%;
-  width: var(--card-w, 260px);
-  min-width: 140px;
+  aspect-ratio: var(--ratio, 16 / 10);
   border-radius: 12px;
   overflow: hidden;
   background-color: #1e293b;
@@ -410,13 +409,13 @@ main { padding-top: 100px; }
   transition: transform .25s ease, filter .25s ease, box-shadow .25s ease;
 }
 
-/* Video inside carousel card — fills the card exactly like a background-image */
+/* Video inside carousel card — fits without cropping (matches image behaviour) */
 .card > video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 12px;
   pointer-events: none;
 }

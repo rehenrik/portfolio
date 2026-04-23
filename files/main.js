@@ -186,7 +186,6 @@ class CardStreamController {
     this.gapPx = 40;
 
     this.cards            = [];
-    this.dimCache         = new Map();
     this.modalOpen        = false;
     this.modalIdx         = 0;
     this.containerVisible = true;
@@ -248,13 +247,11 @@ class CardStreamController {
         img.onload = () => {
           const w = img.naturalWidth  || 1600;
           const h = img.naturalHeight || 1000;
-          this.dimCache.set(src, { w, h });
-          this.applyWidthFromRatio(card, w, h);
+          card.style.setProperty('--ratio', `${w} / ${h}`);
           this.markCardLoaded();
         };
         img.onerror = () => {
           card.style.removeProperty('--bg');
-          this.applyWidthFromRatio(card, 1600, 1000);
           this.markCardLoaded();
         };
         img.src = thumb;
@@ -279,7 +276,6 @@ class CardStreamController {
 
   init() {
     this.populate();
-    this.updateCardWidths();
     this.setupEventListeners();
     this.observeContainerVisibility();
     this.startRaf();
@@ -352,8 +348,12 @@ class CardStreamController {
       video.loop    = true;
       video.muted   = true;
       video.setAttribute('playsinline', '');
-      video.preload = 'none'; // upgraded to data only when card enters viewport via play()
+      video.preload = 'none'; // ratio defaults to 16/10; updated on loadedmetadata when play() fires
       video.src     = item.src;
+      video.addEventListener('loadedmetadata', () => {
+        const w = video.videoWidth, h = video.videoHeight;
+        if (w && h) card.style.setProperty('--ratio', `${w} / ${h}`);
+      }, { once: true });
       card.appendChild(video);
       this.playObserver.observe(video);
     }
@@ -363,25 +363,6 @@ class CardStreamController {
     return wrapper;
   }
 
-  updateCardWidths() {
-    this.cardLine.querySelectorAll(".card-wrapper").forEach(wrap => {
-      const card  = wrap.firstElementChild;
-      const h     = parseFloat(getComputedStyle(wrap).height) || 240;
-      const bg    = card.dataset.bg || '';
-      const meta  = this.dimCache.get(bg);
-      const ratio = meta ? (meta.w / meta.h) : (16 / 10);
-      const width = Math.max(140, Math.round(h * ratio));
-      card.style.setProperty("--card-w", width + "px");
-    });
-  }
-
-  applyWidthFromRatio(card, w, h) {
-    const wrap  = card.parentElement;
-    const hh    = parseFloat(getComputedStyle(wrap).height) || 240;
-    const width = Math.max(140, Math.round(hh * (w / h)));
-    card.style.setProperty("--card-w", width + "px");
-  }
-
   setupEventListeners() {
     const updateGap = () => {
       const g = getComputedStyle(this.cardLine).gap || "40px";
@@ -389,10 +370,7 @@ class CardStreamController {
     };
     updateGap();
 
-    let resizeRaf = null;
     window.addEventListener("resize", () => {
-      if (resizeRaf) cancelAnimationFrame(resizeRaf);
-      resizeRaf = requestAnimationFrame(() => this.updateCardWidths());
       updateGap();
     });
 
