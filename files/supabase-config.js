@@ -42,7 +42,7 @@ if (_isPublicPage) {
       if (isVideo) continue;
 
       const href = url.includes('/storage/v1/object/public/')
-        ? url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=1200&quality=70&format=webp'
+        ? url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/') + '?width=1200&resize=contain&quality=70&format=webp'
         : url;
 
       const link = document.createElement('link');

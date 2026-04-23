@@ -220,7 +220,7 @@ class CardStreamController {
   thumbUrl(src) {
     if (src && src.includes('/storage/v1/object/public/')) {
       return src.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-        + '?width=1200&quality=70&format=webp';
+        + '?width=1200&resize=contain&quality=70&format=webp';
     }
     return src; // external/fallback URLs — use as-is
   }
