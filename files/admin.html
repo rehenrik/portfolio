@@ -1225,6 +1225,39 @@
 
     .ts-card.dirty .ts-card-footer .ts-dirty-msg { display: block; }
 
+    /* ── Global Colors Panel ────────────────────────────────── */
+    .cf-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .cf-card-header { padding: 12px 16px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
+    .cf-family-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--fg); }
+    .cf-header-actions { display: flex; gap: 6px; }
+    .cf-shades-row { padding: 16px 16px 12px; display: flex; gap: 8px; overflow-x: auto; background: var(--bg); scrollbar-width: thin; }
+    .cf-shade-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+    .cf-shade-cell.base .cf-swatch-label { outline: 2px solid var(--fg); outline-offset: 2px; }
+    .cf-swatch-label { width: 44px; height: 44px; border-radius: 8px; cursor: pointer; display: block; border: 1px solid rgba(0,0,0,0.08); transition: transform 0.15s; }
+    .cf-swatch-label:hover { transform: scale(1.1); }
+    .cf-shade-num { font-size: 0.58rem; font-weight: 600; color: var(--fg-muted); }
+    .cf-shade-hex { font-size: 0.55rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+    .cf-color-input { width: 0; height: 0; padding: 0; border: none; opacity: 0; position: absolute; pointer-events: none; }
+    .cf-card-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); }
+    .cf-gen-btn { font-size: 0.72rem; color: var(--fg-muted); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+    .cf-gen-btn:hover { background: var(--surface2); color: var(--fg); }
+    .cf-dirty-msg { font-size: 0.72rem; color: var(--fg-muted); flex: 1; display: none; }
+    .cf-card.dirty .cf-dirty-msg { display: block; }
+    .cf-base-badge { font-size: 0.52rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; background: var(--fg); color: var(--bg); border-radius: 4px; padding: 1px 4px; margin-top: 2px; }
+
+    /* Color Assignments */
+    .ca-block { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .ca-block-header { padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .ca-block-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-muted); }
+    .ca-row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 10px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .ca-row:last-child { border-bottom: none; }
+    .ca-row-label { font-size: 0.82rem; display: flex; align-items: center; gap: 8px; }
+    .ca-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); display: inline-block; flex-shrink: 0; }
+    .ca-col { display: flex; flex-direction: column; gap: 3px; }
+    .ca-mode-label { font-size: 0.58rem; color: var(--fg-muted); text-align: center; }
+    .ca-select { font-size: 0.72rem; padding: 5px 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--fg); cursor: pointer; }
+    .ca-select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
     /* ── Site Content Panel ────────────────────────────────── */
     .content-page-selector { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -1399,6 +1432,7 @@
       <div class="nav-group">
         <span class="nav-group-label">Design System</span>
         <button class="nav-item" data-section="typography">Global Fonts</button>
+        <button class="nav-item" data-section="colors">Global Colors</button>
         <button class="nav-item" data-section="fonts">Fontes</button>
       </div>
       <div class="nav-group">
@@ -1530,6 +1564,38 @@
           <div class="loading-row">
             <div class="spinner"></div>
             Loading fonts…
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Global Colors ────────────────────────────── -->
+      <div class="panel" data-panel="colors">
+
+        <div class="section-top" style="padding-bottom:0">
+          <h2>Global Colors <span class="count-badge" id="colorFamilyCountBadge">0</span></h2>
+          <p style="font-size:0.8rem;color:var(--fg-muted)">Famílias de cor do Design System — tokens primitivos e semânticos</p>
+        </div>
+
+        <!-- Paleta de Cores -->
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px">
+            <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted)">Paleta de Cores</span>
+            <button class="btn btn-sm" id="addFamilyBtn" style="font-size:0.75rem;padding:5px 12px">+ Nova família</button>
+          </div>
+          <div id="colorFamiliesContainer" style="display:flex;flex-direction:column;gap:8px">
+            <div class="loading-row"><div class="spinner"></div>Carregando paleta…</div>
+          </div>
+        </div>
+
+        <!-- Tokens do Site -->
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+          <div style="padding:0 2px">
+            <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted)">Tokens do Site</span>
+            <p style="font-size:0.75rem;color:var(--fg-muted);margin-top:4px">Mapeia tokens de paleta para os elementos do site. Salvar recalcula o CSS automaticamente.</p>
+          </div>
+          <div id="colorAssignmentsContainer" style="display:flex;flex-direction:column;gap:8px">
+            <div class="loading-row"><div class="spinner"></div>Carregando tokens…</div>
           </div>
         </div>
 
@@ -1813,6 +1879,7 @@ const SECTION_TITLES = {
   carousel:       'Carousel',
   projects:       'Projetos',
   typography:     'Global Fonts',
+  colors:         'Global Colors',
   fonts:          'Fontes',
   settings:       'Configurações gerais',
 };
@@ -1841,6 +1908,7 @@ function showApp() {
   loadProjects();
   loadCarouselImages();
   loadTypography();
+  loadColors();
   loadFonts();
 }
 
@@ -2802,6 +2870,345 @@ function invalidateTypoCache() {
   try { localStorage.removeItem('typography_css_v1'); } catch (_) {}
   try { localStorage.removeItem('type_styles_css_v1'); } catch (_) {}
 }
+
+// ══════════════════════════════════════════════════════════════
+//  GLOBAL COLORS
+// ══════════════════════════════════════════════════════════════
+let colorFamilies    = [];
+let colorTokensData  = [];
+let colorAssignments = [];
+const ALL_SHADES     = [50,100,200,300,400,500,600,700,800,900,950];
+
+function invalidateColorCache() {
+  try { localStorage.removeItem('color_css_v1'); } catch (_) {}
+}
+
+// ── HSL helpers for scale generation ───────────────────────
+function hexToHsl(hex) {
+  let r = parseInt(hex.slice(1,3),16)/255;
+  let g = parseInt(hex.slice(3,5),16)/255;
+  let b = parseInt(hex.slice(5,7),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max-min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    switch(max) {
+      case r: h = ((g-b)/d + (g<b?6:0))/6; break;
+      case g: h = ((b-r)/d + 2)/6; break;
+      default: h = ((r-g)/d + 4)/6;
+    }
+  }
+  return [h*360, s*100, l*100];
+}
+
+function hslToHex(h, s, l) {
+  h /= 360; s /= 100; l /= 100;
+  let r, g, b;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p,q,t) => {
+      if (t<0) t+=1; if (t>1) t-=1;
+      if (t<1/6) return p+(q-p)*6*t;
+      if (t<1/2) return q;
+      if (t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q = l<0.5 ? l*(1+s) : l+s-l*s;
+    const p = 2*l-q;
+    r = hue2rgb(p,q,h+1/3);
+    g = hue2rgb(p,q,h);
+    b = hue2rgb(p,q,h-1/3);
+  }
+  const toHex = x => Math.round(x*255).toString(16).padStart(2,'0');
+  return '#'+toHex(r)+toHex(g)+toHex(b);
+}
+
+function generateColorScale(baseHex) {
+  const [h, s, l] = hexToHsl(baseHex);
+  return ALL_SHADES.map(shade => {
+    if (shade === 500) return baseHex;
+    const t = (shade - 500) / 450;
+    const newL = t < 0
+      ? l + (-t) * (96 - l)
+      : l - t * (l - 5);
+    return hslToHex(h, Math.min(s, 95), Math.max(2, Math.min(97, newL)));
+  });
+}
+
+// ── Resolve token string → hex (from current in-memory data) ──
+function resolveToken(tokenStr) {
+  if (!tokenStr) return '';
+  const [fam, shade] = tokenStr.split('-');
+  const shadeNum = parseInt(shade);
+  const tok = colorTokensData.find(t => t.family_name === fam && t.shade === shadeNum);
+  return tok ? tok.value : '';
+}
+
+// ── Family card ─────────────────────────────────────────────
+function buildFamilyCard(family) {
+  const card = document.createElement('div');
+  card.className = 'cf-card';
+  card.dataset.family = family.name;
+
+  const myTokens = () => colorTokensData.filter(t => t.family_name === family.name);
+  const getVal = shade => { const t = myTokens().find(t => t.shade === shade); return t ? t.value : '#888888'; };
+
+  const localVals = {};
+  ALL_SHADES.forEach(s => { localVals[s] = getVal(s); });
+
+  const headerHTML = `
+    <div class="cf-card-header">
+      <span class="cf-family-label">${family.label}</span>
+      <div class="cf-header-actions">
+        <button class="btn btn-sm btn-ghost cf-rename-btn" style="font-size:0.72rem;padding:4px 10px">Renomear</button>
+        <button class="btn btn-sm btn-danger cf-delete-btn" style="font-size:0.72rem;padding:4px 10px">Excluir</button>
+      </div>
+    </div>
+  `;
+
+  const shadesHTML = ALL_SHADES.map(shade => `
+    <div class="cf-shade-cell${shade===500?' base':''}">
+      <label class="cf-swatch-label" style="background:${localVals[shade]}" title="${shade}">
+        <input type="color" class="cf-color-input" data-shade="${shade}" value="${localVals[shade]}">
+      </label>
+      ${shade===500 ? '<span class="cf-base-badge">Base</span>' : ''}
+      <span class="cf-shade-num">${shade}</span>
+      <span class="cf-shade-hex">${localVals[shade]}</span>
+    </div>
+  `).join('');
+
+  const footerHTML = `
+    <div class="cf-card-footer">
+      <button class="cf-gen-btn">✦ Gerar escala a partir de 500</button>
+      <span class="cf-dirty-msg">Mudanças não salvas</span>
+      <button class="btn btn-sm cf-save-btn">Salvar</button>
+    </div>
+  `;
+
+  card.innerHTML = headerHTML + `<div class="cf-shades-row">${shadesHTML}</div>` + footerHTML;
+
+  // Wire color inputs
+  card.querySelectorAll('.cf-color-input').forEach(input => {
+    const shade = parseInt(input.dataset.shade);
+    const swatchLabel = input.closest('.cf-swatch-label');
+    const hexSpan = input.closest('.cf-shade-cell').querySelector('.cf-shade-hex');
+    input.addEventListener('input', () => {
+      const v = input.value;
+      localVals[shade] = v;
+      swatchLabel.style.background = v;
+      hexSpan.textContent = v;
+      card.classList.add('dirty');
+    });
+  });
+
+  // Generate scale
+  card.querySelector('.cf-gen-btn').addEventListener('click', () => {
+    const scale = generateColorScale(localVals[500]);
+    ALL_SHADES.forEach((shade, i) => {
+      if (shade === 500) return;
+      localVals[shade] = scale[i];
+      const cell = card.querySelector(`.cf-color-input[data-shade="${shade}"]`);
+      if (!cell) return;
+      cell.value = scale[i];
+      cell.closest('.cf-swatch-label').style.background = scale[i];
+      cell.closest('.cf-shade-cell').querySelector('.cf-shade-hex').textContent = scale[i];
+    });
+    card.classList.add('dirty');
+  });
+
+  // Rename
+  card.querySelector('.cf-rename-btn').addEventListener('click', async () => {
+    const newLabel = prompt('Novo nome da família:', family.label);
+    if (!newLabel || newLabel === family.label) return;
+    try {
+      const client = await getClient();
+      await client.from('color_families').update({ label: newLabel }).eq('id', family.id);
+      family.label = newLabel;
+      card.querySelector('.cf-family-label').textContent = newLabel;
+      toast('Família renomeada', 'success');
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+
+  // Delete
+  card.querySelector('.cf-delete-btn').addEventListener('click', async () => {
+    if (!confirm(`Excluir a família "${family.label}" e todos os seus tokens?`)) return;
+    try {
+      const client = await getClient();
+      await client.from('color_tokens').delete().eq('family_name', family.name);
+      await client.from('color_families').delete().eq('id', family.id);
+      invalidateColorCache();
+      toast(`"${family.label}" excluída`, 'success');
+      await loadColors();
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+
+  // Save
+  card.querySelector('.cf-save-btn').addEventListener('click', async () => {
+    try {
+      const client = await getClient();
+      const upserts = ALL_SHADES.map(shade => ({
+        family_name: family.name,
+        shade,
+        value: localVals[shade],
+        dark_value: (colorTokensData.find(t => t.family_name === family.name && t.shade === shade) || {}).dark_value || '',
+        updated_at: new Date().toISOString(),
+      }));
+      const { error } = await client.from('color_tokens').upsert(upserts, { onConflict: 'family_name,shade' });
+      if (error) throw error;
+      // Update in-memory
+      ALL_SHADES.forEach(shade => {
+        const idx = colorTokensData.findIndex(t => t.family_name === family.name && t.shade === shade);
+        if (idx >= 0) colorTokensData[idx].value = localVals[shade];
+        else colorTokensData.push({ family_name: family.name, shade, value: localVals[shade], dark_value: '' });
+      });
+      invalidateColorCache();
+      card.classList.remove('dirty');
+      renderAssignments();
+      toast(`"${family.label}" salva`, 'success');
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+
+  return card;
+}
+
+function renderFamilies() {
+  const container = document.getElementById('colorFamiliesContainer');
+  const badge = document.getElementById('colorFamilyCountBadge');
+  if (!container) return;
+  container.innerHTML = '';
+  badge.textContent = colorFamilies.length;
+  colorFamilies.forEach(fam => container.appendChild(buildFamilyCard(fam)));
+  if (!colorFamilies.length) container.innerHTML = '<p style="color:var(--fg-muted);font-size:0.85rem">Nenhuma família. Clique em + Nova família para começar.</p>';
+}
+
+// ── Assignments ─────────────────────────────────────────────
+function buildTokenOptions(selected) {
+  const none = `<option value="" ${!selected?'selected':''}>—</option>`;
+  const groups = colorFamilies.map(fam => {
+    const opts = ALL_SHADES.map(shade => {
+      const tok = colorTokensData.find(t => t.family_name === fam.name && t.shade === shade);
+      const val = tok ? tok.value : '';
+      const key = `${fam.name}-${shade}`;
+      return `<option value="${key}" ${selected===key?'selected':''} style="background:${val}">${fam.label} / ${shade}</option>`;
+    }).join('');
+    return `<optgroup label="${fam.label}">${opts}</optgroup>`;
+  }).join('');
+  return none + groups;
+}
+
+function buildAssignmentRow(a) {
+  const row = document.createElement('div');
+  row.className = 'ca-row';
+  const lightHex = resolveToken(a.light_token);
+  const darkHex  = resolveToken(a.dark_token);
+
+  row.innerHTML = `
+    <div class="ca-row-label">
+      <span class="ca-swatch" style="background:${lightHex||'transparent'}"></span>
+      ${a.label}
+    </div>
+    <div class="ca-col">
+      <span class="ca-mode-label">☀ Light</span>
+      <select class="ca-select ca-light-sel">${buildTokenOptions(a.light_token)}</select>
+    </div>
+    <div class="ca-col">
+      <span class="ca-mode-label">☾ Dark</span>
+      <select class="ca-select ca-dark-sel">${buildTokenOptions(a.dark_token)}</select>
+    </div>
+    <button class="btn btn-sm ca-save-btn">Salvar</button>
+  `;
+
+  const lightSel = row.querySelector('.ca-light-sel');
+  const darkSel  = row.querySelector('.ca-dark-sel');
+  const swatch   = row.querySelector('.ca-swatch');
+
+  lightSel.addEventListener('change', () => {
+    swatch.style.background = resolveToken(lightSel.value) || 'transparent';
+  });
+
+  row.querySelector('.ca-save-btn').addEventListener('click', async () => {
+    try {
+      const client = await getClient();
+      const { error } = await client.from('color_assignments').update({
+        light_token: lightSel.value,
+        dark_token: darkSel.value,
+      }).eq('id', a.id);
+      if (error) throw error;
+      a.light_token = lightSel.value;
+      a.dark_token  = darkSel.value;
+      swatch.style.background = resolveToken(lightSel.value) || 'transparent';
+      invalidateColorCache();
+      toast(`Token "${a.label}" salvo`, 'success');
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+
+  return row;
+}
+
+function renderAssignments() {
+  const container = document.getElementById('colorAssignmentsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!colorAssignments.length) {
+    container.innerHTML = '<p style="color:var(--fg-muted);font-size:0.85rem">Nenhum token semântico configurado.</p>';
+    return;
+  }
+  const categories = [...new Set(colorAssignments.map(a => a.category))];
+  categories.forEach(cat => {
+    const block = document.createElement('div');
+    block.className = 'ca-block';
+    const catLabel = cat === 'geral' ? 'Geral' : cat === 'componente' ? 'Componentes' : cat === 'texto' ? 'Texto' : cat;
+    block.innerHTML = `<div class="ca-block-header"><span class="ca-block-label">${catLabel}</span></div>`;
+    colorAssignments.filter(a => a.category === cat).forEach(a => block.appendChild(buildAssignmentRow(a)));
+    container.appendChild(block);
+  });
+}
+
+// ── Load ─────────────────────────────────────────────────────
+async function loadColors() {
+  const container = document.getElementById('colorFamiliesContainer');
+  const asgContainer = document.getElementById('colorAssignmentsContainer');
+  if (container) container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando paleta…</div>';
+  if (asgContainer) asgContainer.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando tokens…</div>';
+  try {
+    const client = await getClient();
+    const [famRes, tokRes, asgRes] = await Promise.all([
+      client.from('color_families').select('*').order('sort_order'),
+      client.from('color_tokens').select('*'),
+      client.from('color_assignments').select('*').order('sort_order'),
+    ]);
+    colorFamilies    = famRes.data || [];
+    colorTokensData  = tokRes.data || [];
+    colorAssignments = asgRes.data || [];
+    renderFamilies();
+    renderAssignments();
+  } catch (e) {
+    if (container) container.innerHTML = `<div class="error-msg">Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+// ── Add new family ────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const addBtn = document.getElementById('addFamilyBtn');
+  if (!addBtn) return;
+  addBtn.addEventListener('click', async () => {
+    const nameRaw = prompt('Nome da família (ex: primary, accent, brand):');
+    if (!nameRaw) return;
+    const name  = nameRaw.trim().toLowerCase().replace(/\s+/g, '-');
+    const label = nameRaw.trim().charAt(0).toUpperCase() + nameRaw.trim().slice(1);
+    if (colorFamilies.find(f => f.name === name)) { toast('Família já existe', 'error'); return; }
+    try {
+      const client = await getClient();
+      const maxSort = colorFamilies.reduce((m, f) => Math.max(m, f.sort_order||0), 0);
+      const { error } = await client.from('color_families').insert({ name, label, sort_order: maxSort + 1 });
+      if (error) throw error;
+      toast(`"${label}" criada`, 'success');
+      await loadColors();
+    } catch (e) { toast('Erro: ' + e.message, 'error'); }
+  });
+});
 
 // ══════════════════════════════════════════════════════════════
 //  FONTS MANAGER

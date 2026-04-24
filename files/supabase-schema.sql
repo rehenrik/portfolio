@@ -272,3 +272,136 @@ values
   ('button',          'Button',          '.btn',           'sans',  '500', '0.875rem',                     '',                              '',         '1',       '',    '',    '0.02em',  'uppercase', 10),
   ('link',            'Link',            'a',              'sans',  '400', 'inherit',                      '',                              '',         'inherit', '',    '',    '0',       'none',      11)
 on conflict (name) do nothing;
+
+-- ============================================================
+-- GLOBAL COLORS — Design System de Cores
+-- ============================================================
+
+create table if not exists public.color_families (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null unique,  -- 'primary', 'neutral', 'success'
+  label      text not null,         -- 'Primary', 'Neutral', 'Success'
+  sort_order int  default 0,
+  created_at timestamptz default now()
+);
+
+alter table public.color_families enable row level security;
+create policy "Public reads color_families" on public.color_families for select using (true);
+create policy "Anon manages color_families" on public.color_families for all using (true) with check (true);
+
+create table if not exists public.color_tokens (
+  id          uuid primary key default gen_random_uuid(),
+  family_name text not null,
+  shade       int  not null check (shade in (50,100,200,300,400,500,600,700,800,900,950)),
+  value       text not null default '#000000',
+  dark_value  text default '',
+  updated_at  timestamptz default now(),
+  unique (family_name, shade)
+);
+
+alter table public.color_tokens enable row level security;
+create policy "Public reads color_tokens" on public.color_tokens for select using (true);
+create policy "Anon manages color_tokens" on public.color_tokens for all using (true) with check (true);
+
+create table if not exists public.color_assignments (
+  id          uuid primary key default gen_random_uuid(),
+  css_var     text not null unique,
+  label       text not null,
+  category    text default 'geral',
+  light_token text default '',
+  dark_token  text default '',
+  sort_order  int  default 0
+);
+
+alter table public.color_assignments enable row level security;
+create policy "Public reads color_assignments" on public.color_assignments for select using (true);
+create policy "Anon manages color_assignments" on public.color_assignments for all using (true) with check (true);
+
+-- Seed: 7 famílias
+insert into public.color_families (name, label, sort_order) values
+  ('primary',   'Primary',   1),
+  ('secondary', 'Secondary', 2),
+  ('neutral',   'Neutral',   3),
+  ('success',   'Success',   4),
+  ('warning',   'Warning',   5),
+  ('error',     'Error',     6),
+  ('info',      'Info',      7)
+on conflict (name) do nothing;
+
+-- Seed: Primary (baseado no laranja atual #FE4311)
+insert into public.color_tokens (family_name, shade, value, dark_value) values
+  ('primary',  50,  '#FFF5F2', ''),
+  ('primary', 100,  '#FFDDD4', ''),
+  ('primary', 200,  '#FFC1AF', ''),
+  ('primary', 300,  '#FFA08A', ''),
+  ('primary', 400,  '#FF7660', ''),
+  ('primary', 500,  '#FE4311', ''),
+  ('primary', 600,  '#D93600', ''),
+  ('primary', 700,  '#B02B00', ''),
+  ('primary', 800,  '#8A2100', ''),
+  ('primary', 900,  '#641800', ''),
+  ('primary', 950,  '#3F0E00', '')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Neutral (bege claro → preto admin, com overrides dark mode)
+insert into public.color_tokens (family_name, shade, value, dark_value) values
+  ('neutral',  50,  '#F6F5F1', '#0E0E10'),
+  ('neutral', 100,  '#ECEAE4', '#18181B'),
+  ('neutral', 200,  '#DDD9CF', '#222226'),
+  ('neutral', 300,  '#C9C4B9', '#2E2A2F'),
+  ('neutral', 400,  '#B0AA9E', '#4A4550'),
+  ('neutral', 500,  '#888178', '#6B6575'),
+  ('neutral', 600,  '#645E57', '#8C8596'),
+  ('neutral', 700,  '#484238', '#B0A9BA'),
+  ('neutral', 800,  '#2E2923', '#D0CAD8'),
+  ('neutral', 900,  '#1A1715', '#E8E4EE'),
+  ('neutral', 950,  '#0E0E10', '#F5F7FA')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Success
+insert into public.color_tokens (family_name, shade, value) values
+  ('success',  50,  '#F0FDF4'), ('success', 100, '#DCFCE7'), ('success', 200, '#BBF7D0'),
+  ('success', 300,  '#86EFAC'), ('success', 400, '#4ADE80'), ('success', 500, '#22C55E'),
+  ('success', 600,  '#16A34A'), ('success', 700, '#15803D'), ('success', 800, '#166534'),
+  ('success', 900,  '#14532D'), ('success', 950, '#052E16')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Warning
+insert into public.color_tokens (family_name, shade, value) values
+  ('warning',  50,  '#FFFBEB'), ('warning', 100, '#FEF3C7'), ('warning', 200, '#FDE68A'),
+  ('warning', 300,  '#FCD34D'), ('warning', 400, '#FBBF24'), ('warning', 500, '#F59E0B'),
+  ('warning', 600,  '#D97706'), ('warning', 700, '#B45309'), ('warning', 800, '#92400E'),
+  ('warning', 900,  '#78350F'), ('warning', 950, '#451A03')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Error
+insert into public.color_tokens (family_name, shade, value) values
+  ('error',  50,  '#FFF1F2'), ('error', 100, '#FFE4E6'), ('error', 200, '#FECDD3'),
+  ('error', 300,  '#FDA4AF'), ('error', 400, '#FB7185'), ('error', 500, '#F43F5E'),
+  ('error', 600,  '#E11D48'), ('error', 700, '#BE123C'), ('error', 800, '#9F1239'),
+  ('error', 900,  '#881337'), ('error', 950, '#4C0519')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Info
+insert into public.color_tokens (family_name, shade, value) values
+  ('info',  50,  '#EFF6FF'), ('info', 100, '#DBEAFE'), ('info', 200, '#BFDBFE'),
+  ('info', 300,  '#93C5FD'), ('info', 400, '#60A5FA'), ('info', 500, '#3B82F6'),
+  ('info', 600,  '#2563EB'), ('info', 700, '#1D4ED8'), ('info', 800, '#1E40AF'),
+  ('info', 900,  '#1E3A8A'), ('info', 950, '#172554')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: Secondary (roxo neutro)
+insert into public.color_tokens (family_name, shade, value) values
+  ('secondary',  50,  '#FAF5FF'), ('secondary', 100, '#F3E8FF'), ('secondary', 200, '#E9D5FF'),
+  ('secondary', 300,  '#D8B4FE'), ('secondary', 400, '#C084FC'), ('secondary', 500, '#A855F7'),
+  ('secondary', 600,  '#9333EA'), ('secondary', 700, '#7E22CE'), ('secondary', 800, '#6B21A8'),
+  ('secondary', 900,  '#581C87'), ('secondary', 950, '#3B0764')
+on conflict (family_name, shade) do nothing;
+
+-- Seed: 4 assignments semânticos
+insert into public.color_assignments (css_var, label, category, light_token, dark_token, sort_order) values
+  ('--accent',   'Accent / Destaque', 'geral',      'primary-500',  'primary-400',  1),
+  ('--bg',       'Fundo do site',     'geral',      'neutral-50',   'neutral-950',  2),
+  ('--card-bg',  'Fundo de cards',    'componente', 'neutral-100',  'neutral-900',  3),
+  ('--fg',       'Texto principal',   'texto',      'neutral-950',  'neutral-50',   4)
+on conflict (css_var) do nothing;

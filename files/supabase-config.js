@@ -297,3 +297,74 @@ if (_isPublicPage) {
 } else {
   window._siteContentPromise = Promise.resolve([]);
 }
+
+// ── Global Colors CMS — fetch, cache, inject ─────────────────
+const COLOR_CACHE_KEY = 'color_css_v1';
+
+function buildColorsCSS(families, tokens, assignments) {
+  const byFamily = {};
+  for (const t of (tokens || [])) {
+    if (!byFamily[t.family_name]) byFamily[t.family_name] = {};
+    byFamily[t.family_name][t.shade] = t;
+  }
+
+  let lightRoot = '';
+  let darkRoot  = '';
+
+  for (const fam of (families || [])) {
+    const shades = byFamily[fam.name] || {};
+    for (const [shade, t] of Object.entries(shades)) {
+      lightRoot += `--${fam.name}-${shade}:${t.value};`;
+      if (t.dark_value) darkRoot += `--${fam.name}-${shade}:${t.dark_value};`;
+    }
+  }
+
+  for (const a of (assignments || [])) {
+    if (a.light_token) lightRoot += `${a.css_var}:var(--${a.light_token.replace('/', '-')});`;
+    if (a.dark_token)  darkRoot  += `${a.css_var}:var(--${a.dark_token.replace('/', '-')});`;
+  }
+
+  let css = `:root{${lightRoot}}`;
+  if (darkRoot) css += `[data-theme="dark"]{${darkRoot}}`;
+  return css;
+}
+
+function applyColorsCSS(css) {
+  if (!css) return;
+  let el = document.getElementById('color-tokens-css');
+  if (!el) {
+    el = document.createElement('style');
+    el.id = 'color-tokens-css';
+    document.head.appendChild(el);
+  }
+  if (el.textContent !== css) el.textContent = css;
+}
+
+if (_isPublicPage) {
+  (function applyCachedColors() {
+    try {
+      const cached = localStorage.getItem(COLOR_CACHE_KEY);
+      if (cached) applyColorsCSS(cached);
+    } catch (_) {}
+  })();
+
+  window._colorsPromise = Promise.all([
+    fetch(SUPABASE_REST + '/color_families?select=*&order=sort_order.asc', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => []),
+    fetch(SUPABASE_REST + '/color_tokens?select=*', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => []),
+    fetch(SUPABASE_REST + '/color_assignments?select=*&order=sort_order.asc', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => [])
+  ]).then(([families, tokens, assignments]) => {
+    const css = buildColorsCSS(families, tokens, assignments);
+    try { localStorage.setItem(COLOR_CACHE_KEY, css); } catch (_) {}
+    applyColorsCSS(css);
+    return { families, tokens, assignments, css };
+  }).catch(() => ({ families: [], tokens: [], assignments: [], css: '' }));
+} else {
+  window._colorsPromise = Promise.resolve({ families: [], tokens: [], assignments: [], css: '' });
+}
+
+async function getColorsData() {
+  return await window._colorsPromise;
+}
