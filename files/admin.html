@@ -1064,6 +1064,167 @@
       .carousel-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
     }
 
+    /* ── Global Fonts Panel ───────────────────────────────── */
+    .ts-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .ts-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      background: var(--surface);
+      cursor: pointer;
+      user-select: none;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .ts-card-header:hover { background: var(--surface2); }
+
+    .ts-card-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .ts-card-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--fg-muted);
+      flex-shrink: 0;
+    }
+
+    .ts-card-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ts-card-preview-inline {
+      flex: 1;
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: right;
+      padding-right: 4px;
+    }
+
+    .ts-card-chevron { transition: transform 0.2s; flex-shrink: 0; color: var(--fg-muted); }
+    .ts-card.open .ts-card-chevron { transform: rotate(180deg); }
+
+    .ts-card-body { display: none; flex-direction: column; border-top: 1px solid var(--border); }
+    .ts-card.open .ts-card-body { display: flex; }
+
+    .ts-preview-bar {
+      padding: 20px 20px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      word-break: break-word;
+      color: var(--fg);
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+    }
+
+    .ts-controls {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: var(--surface);
+    }
+
+    .ts-controls-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .ts-controls-row.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .ts-controls-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .ts-controls-row.cols-1 { grid-template-columns: 1fr; }
+
+    .ts-ctrl {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .ts-ctrl-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--fg-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ts-bp-switcher {
+      display: flex;
+      gap: 2px;
+    }
+
+    .ts-bp-btn {
+      width: 24px;
+      height: 20px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--fg-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-family: inherit;
+      transition: all 0.12s;
+      flex-shrink: 0;
+    }
+
+    .ts-bp-btn.active {
+      background: color-mix(in srgb, var(--accent) 15%, var(--surface));
+      color: var(--fg);
+      border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    }
+
+    .ts-bp-hint {
+      font-size: 0.62rem;
+      color: var(--fg-muted);
+      opacity: 0.6;
+      margin-top: 2px;
+    }
+
+    .ts-card-footer {
+      padding: 11px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .ts-card-footer .ts-dirty-msg {
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: none;
+    }
+
+    .ts-card.dirty .ts-card-footer .ts-dirty-msg { display: block; }
+
     /* ── Site Content Panel ────────────────────────────────── */
     .content-page-selector { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -1237,7 +1398,7 @@
       </div>
       <div class="nav-group">
         <span class="nav-group-label">Design System</span>
-        <button class="nav-item" data-section="typography">Tipografia global</button>
+        <button class="nav-item" data-section="typography">Global Fonts</button>
         <button class="nav-item" data-section="fonts">Fontes</button>
       </div>
       <div class="nav-group">
@@ -1337,32 +1498,16 @@
 
       </div>
 
-      <!-- Panel: Tipografia ───────────────────────────────── -->
+      <!-- Panel: Global Fonts ────────────────────────────────── -->
       <div class="panel" data-panel="typography">
 
-        <div class="section-top">
-          <h2>
-            Tipografia global
-            <span class="count-badge" id="typoCountBadge">0</span>
-          </h2>
-          <button class="btn btn-ghost btn-sm" id="resetTypoBtn" title="Restore seed defaults">Restaurar padrões</button>
+        <div class="section-top" style="padding-bottom:0">
+          <h2>Global Fonts <span class="count-badge" id="typoCountBadge">0</span></h2>
+          <p style="font-size:0.8rem;color:var(--fg-muted)">Estilos globais de tipografia — aplicados automaticamente ao site</p>
         </div>
 
-        <div class="typo-header">
-          <span>Seletor</span>
-          <span>Fonte</span>
-          <span>Peso</span>
-          <span>Tamanho</span>
-          <span class="letter-cell">Espaçamento</span>
-          <span class="line-cell">Altura linha</span>
-          <span></span>
-        </div>
-
-        <div class="typo-table" id="typoTable">
-          <div class="loading-row">
-            <div class="spinner"></div>
-            Loading tokens…
-          </div>
+        <div id="typeStylesContainer" style="display:flex;flex-direction:column;gap:8px">
+          <div class="loading-row"><div class="spinner"></div>Carregando estilos…</div>
         </div>
 
       </div>
@@ -1667,7 +1812,7 @@ const SECTION_TITLES = {
   'site-content': 'Textos do site',
   carousel:       'Carousel',
   projects:       'Projetos',
-  typography:     'Tipografia global',
+  typography:     'Global Fonts',
   fonts:          'Fontes',
   settings:       'Configurações gerais',
 };
@@ -2397,107 +2542,265 @@ const SEED_TOKENS = [
   { selector: 'paragraph-xs',       font_role: 'sans',  font_weight: '400', font_size: '0.75rem',                         letter_spacing: '-0.01em', line_height: '1.4' }
 ];
 
-let typographyTokens = [];
-
-async function loadTypography() {
-  const table = document.getElementById('typoTable');
-  const badge = document.getElementById('typoCountBadge');
-  table.innerHTML = '<div class="loading-row"><div class="spinner"></div>Loading tokens…</div>';
-
-  try {
-    const client = await getClient();
-    const { data, error } = await client
-      .from('typography_tokens')
-      .select('*')
-      .order('selector', { ascending: true });
-    if (error) throw error;
-
-    // Ensure all 11 seeds exist — fill missing ones in memory for editing.
-    const byKey = {};
-    (data || []).forEach(t => byKey[t.selector] = t);
-    typographyTokens = SEED_TOKENS.map(s => byKey[s.selector] || { ...s });
-
-    badge.textContent = typographyTokens.length;
-    renderTypoTable();
-  } catch (err) {
-    table.innerHTML = `<div class="error-msg" style="display:block">Error loading tokens: ${err.message}</div>`;
-  }
-}
-
-function renderTypoTable() {
-  const table = document.getElementById('typoTable');
-  table.innerHTML = '';
-  typographyTokens.forEach((t, idx) => {
-    const row = document.createElement('div');
-    row.className = 'typo-row';
-    row.dataset.idx = idx;
-    row.innerHTML = `
-      <div class="selector-label">${t.selector}</div>
-      <select data-k="font_role">
-        <option value="sans"${t.font_role==='sans'?' selected':''}>sans</option>
-        <option value="serif"${t.font_role==='serif'?' selected':''}>serif</option>
-        <option value="mono"${t.font_role==='mono'?' selected':''}>mono</option>
-      </select>
-      <input type="text" data-k="font_weight" value="${esc(t.font_weight)}" placeholder="400" />
-      <input type="text" data-k="font_size" value="${esc(t.font_size)}" placeholder="1rem" />
-      <input class="letter-cell" type="text" data-k="letter_spacing" value="${esc(t.letter_spacing)}" placeholder="0" />
-      <input class="line-cell" type="text" data-k="line_height" value="${esc(t.line_height)}" placeholder="1.5" />
-      <div class="save-cell"><button class="save-btn">Save</button></div>
-    `;
-    row.querySelectorAll('input, select').forEach(el => {
-      el.addEventListener('input', () => row.classList.add('dirty'));
-      el.addEventListener('change', () => row.classList.add('dirty'));
-    });
-    row.querySelector('.save-btn').addEventListener('click', () => saveTypoRow(idx, row));
-    table.appendChild(row);
-  });
-}
-
 function esc(v) {
   if (v == null) return '';
   return String(v).replace(/"/g, '&quot;');
 }
 
-async function saveTypoRow(idx, rowEl) {
-  const t = typographyTokens[idx];
-  const payload = { selector: t.selector };
-  rowEl.querySelectorAll('input, select').forEach(el => {
-    payload[el.dataset.k] = el.value.trim();
-  });
+// ══════════════════════════════════════════════════════════════
+//  GLOBAL FONTS (type_styles)
+// ══════════════════════════════════════════════════════════════
+let typeStyles = [];
+
+const TS_WEIGHT_OPTIONS = ['100','200','300','400','500','600','700','800','900'];
+const TS_TRANSFORM_OPTIONS = [
+  { value: 'none',       label: 'Nenhuma' },
+  { value: 'uppercase',  label: 'MAIÚSCULAS' },
+  { value: 'lowercase',  label: 'minúsculas' },
+  { value: 'capitalize', label: 'Capitalize' },
+];
+
+const TS_ROLE_LABELS = { serif: 'Serif', sans: 'Sans-serif', mono: 'Mono' };
+const TS_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
+
+async function loadTypography() {
+  const container = document.getElementById('typeStylesContainer');
+  const badge     = document.getElementById('typoCountBadge');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando estilos…</div>';
   try {
     const client = await getClient();
-    const { error } = await client
-      .from('typography_tokens')
-      .upsert(payload, { onConflict: 'selector' });
+    const { data, error } = await client
+      .from('type_styles')
+      .select('*')
+      .order('sort_order', { ascending: true });
     if (error) throw error;
-    Object.assign(t, payload);
-    rowEl.classList.remove('dirty');
-    toast(`Saved ${t.selector}`, 'success');
-    invalidateTypoCache();
+    typeStyles = data || [];
+    if (badge) badge.textContent = typeStyles.length;
+    renderTypeStyles();
   } catch (err) {
-    toast('Error: ' + err.message, 'error');
+    container.innerHTML = `<div class="error-msg" style="display:block;padding:1rem">Erro: ${esc(err.message)}</div>`;
   }
 }
 
-document.getElementById('resetTypoBtn').addEventListener('click', async () => {
-  if (!confirm('Reset ALL typography tokens to the default scale? This cannot be undone.')) return;
-  try {
-    const client = await getClient();
-    const { error } = await client
-      .from('typography_tokens')
-      .upsert(SEED_TOKENS, { onConflict: 'selector' });
-    if (error) throw error;
-    toast('Tokens reset to defaults', 'success');
-    invalidateTypoCache();
-    await loadTypography();
-  } catch (err) {
-    toast('Error: ' + err.message, 'error');
-  }
-});
+function renderTypeStyles() {
+  const container = document.getElementById('typeStylesContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  typeStyles.forEach((style, i) => {
+    container.appendChild(buildTypeStyleCard(style, i === 0));
+  });
+}
 
-// Invalidate the cache the public site uses so next load pulls fresh CSS
+function buildTypeStyleCard(style, isOpen) {
+  const card = document.createElement('div');
+  card.className = 'ts-card' + (isOpen ? ' open' : '');
+  card.dataset.id = style.id;
+
+  // Track local edits
+  const local = { ...style };
+
+  // Build preview inline style string
+  const previewStyle = () => {
+    const fam = local.font_role === 'serif' ? 'Georgia, serif'
+               : local.font_role === 'mono'  ? 'ui-monospace, monospace'
+               : 'system-ui, sans-serif';
+    return `font-family:${fam};font-weight:${local.font_weight||'400'};` +
+           `font-size:clamp(0.75rem,2vw,${local.font_size||'1rem'});` +
+           `line-height:${local.line_height||'1.5'};` +
+           `letter-spacing:${local.letter_spacing||'0'};` +
+           `text-transform:${local.text_transform||'none'};`;
+  };
+
+  card.innerHTML = `
+    <div class="ts-card-header">
+      <div class="ts-card-meta">
+        <span class="ts-card-name">${esc(style.name)}</span>
+        <span class="ts-card-label">${esc(style.label)}</span>
+      </div>
+      <span class="ts-card-preview-inline">${esc(style.font_role)} · ${esc(style.font_weight)} · ${esc(style.font_size)}</span>
+      <svg class="ts-card-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="ts-card-body">
+      <div class="ts-preview-bar" data-preview>
+        <span style="${previewStyle()}">${TS_PREVIEW_TEXT}</span>
+      </div>
+      <div class="ts-controls">
+
+        <!-- Row 1: Font, Weight, Transform -->
+        <div class="ts-controls-row cols-3">
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">Fonte</span>
+            <select class="field" data-field="font_role">
+              ${['serif','sans','mono'].map(r =>
+                `<option value="${r}"${local.font_role===r?' selected':''}>${TS_ROLE_LABELS[r]}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">Peso</span>
+            <select class="field" data-field="font_weight">
+              ${TS_WEIGHT_OPTIONS.map(w =>
+                `<option value="${w}"${local.font_weight===w?' selected':''}>${w}</option>`
+              ).join('')}
+            </select>
+          </div>
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">Transformação</span>
+            <select class="field" data-field="text_transform">
+              ${TS_TRANSFORM_OPTIONS.map(o =>
+                `<option value="${o.value}"${local.text_transform===o.value?' selected':''}>${o.label}</option>`
+              ).join('')}
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 2: Size (responsive) + Line-height (responsive) -->
+        <div class="ts-controls-row cols-2">
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">
+              Tamanho
+              <span class="ts-bp-switcher" data-bp-group="size">
+                <button class="ts-bp-btn active" data-bp="desktop" title="Desktop">🖥</button>
+                <button class="ts-bp-btn" data-bp="tablet" title="Tablet">⬜</button>
+                <button class="ts-bp-btn" data-bp="mobile" title="Mobile">📱</button>
+              </span>
+            </span>
+            <input class="field" type="text" data-field="font_size" data-bp-field="size" data-bp-active="desktop" value="${esc(local.font_size)}" placeholder="1rem" />
+            <span class="ts-bp-hint" data-bp-hint="size">Desktop — vazio herda do tamanho maior</span>
+          </div>
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">
+              Altura de linha
+              <span class="ts-bp-switcher" data-bp-group="lh">
+                <button class="ts-bp-btn active" data-bp="desktop" title="Desktop">🖥</button>
+                <button class="ts-bp-btn" data-bp="tablet" title="Tablet">⬜</button>
+                <button class="ts-bp-btn" data-bp="mobile" title="Mobile">📱</button>
+              </span>
+            </span>
+            <input class="field" type="text" data-field="line_height" data-bp-field="lh" data-bp-active="desktop" value="${esc(local.line_height)}" placeholder="1.5" />
+            <span class="ts-bp-hint" data-bp-hint="lh">Desktop</span>
+          </div>
+        </div>
+
+        <!-- Row 3: Letter spacing -->
+        <div class="ts-controls-row cols-1">
+          <div class="ts-ctrl">
+            <span class="ts-ctrl-label">Espaçamento entre letras</span>
+            <input class="field" type="text" data-field="letter_spacing" value="${esc(local.letter_spacing)}" placeholder="0" style="max-width:200px" />
+          </div>
+        </div>
+
+      </div>
+      <div class="ts-card-footer">
+        <span class="ts-dirty-msg">Alterações não salvas</span>
+        <button class="btn btn-primary btn-sm ts-save-btn">Salvar</button>
+      </div>
+    </div>
+  `;
+
+  // Breakpoint field maps
+  const bpSizeFields = { desktop: 'font_size', tablet: 'font_size_tablet', mobile: 'font_size_mobile' };
+  const bpLhFields   = { desktop: 'line_height', tablet: 'line_height_tablet', mobile: 'line_height_mobile' };
+  const bpHints = { desktop: 'Desktop', tablet: 'Tablet — vazio herda Desktop', mobile: 'Mobile — vazio herda Tablet' };
+
+  const sizeInput = card.querySelector('[data-bp-field="size"]');
+  const lhInput   = card.querySelector('[data-bp-field="lh"]');
+  const sizeHint  = card.querySelector('[data-bp-hint="size"]');
+  const lhHint    = card.querySelector('[data-bp-hint="lh"]');
+  const previewEl = card.querySelector('[data-preview] span');
+
+  function updatePreview() {
+    previewEl.style.cssText = previewStyle();
+    const inlineMeta = card.querySelector('.ts-card-preview-inline');
+    if (inlineMeta) inlineMeta.textContent = `${local.font_role} · ${local.font_weight} · ${local.font_size}`;
+  }
+
+  function markDirty() {
+    card.classList.add('dirty');
+    updatePreview();
+  }
+
+  // Breakpoint switcher wiring
+  function wireBpGroup(groupAttr, bpFieldMap, inputEl, hintEl) {
+    const switcher = card.querySelector(`[data-bp-group="${groupAttr}"]`);
+    if (!switcher) return;
+    switcher.querySelectorAll('.ts-bp-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const bp = btn.dataset.bp;
+        switcher.querySelectorAll('.ts-bp-btn').forEach(b => b.classList.toggle('active', b === btn));
+        inputEl.dataset.bpActive = bp;
+        inputEl.dataset.field    = bpFieldMap[bp];
+        inputEl.value = esc(local[bpFieldMap[bp]] || '');
+        hintEl.textContent = bpHints[bp];
+      });
+    });
+  }
+
+  wireBpGroup('size', bpSizeFields, sizeInput, sizeHint);
+  wireBpGroup('lh',   bpLhFields,   lhInput,   lhHint);
+
+  // Generic input change tracking
+  card.querySelectorAll('[data-field]').forEach(el => {
+    el.addEventListener('input', () => {
+      local[el.dataset.field] = el.value;
+      markDirty();
+    });
+    el.addEventListener('change', () => {
+      local[el.dataset.field] = el.value;
+      markDirty();
+    });
+  });
+
+  // Toggle header
+  card.querySelector('.ts-card-header').addEventListener('click', () => {
+    card.classList.toggle('open');
+  });
+
+  // Save
+  card.querySelector('.ts-save-btn').addEventListener('click', async () => {
+    const btn = card.querySelector('.ts-save-btn');
+    btn.disabled = true;
+    btn.textContent = '…';
+    try {
+      const client = await getClient();
+      const { error } = await client
+        .from('type_styles')
+        .update({
+          font_role:          local.font_role,
+          font_weight:        local.font_weight,
+          font_size:          local.font_size,
+          font_size_tablet:   local.font_size_tablet || '',
+          font_size_mobile:   local.font_size_mobile || '',
+          line_height:        local.line_height,
+          line_height_tablet: local.line_height_tablet || '',
+          line_height_mobile: local.line_height_mobile || '',
+          letter_spacing:     local.letter_spacing,
+          text_transform:     local.text_transform,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', style.id);
+      if (error) throw error;
+      Object.assign(style, local);
+      card.classList.remove('dirty');
+      btn.textContent = 'Salvo ✓';
+      toast(`${style.label} atualizado`, 'success');
+      try { localStorage.removeItem('type_styles_css_v1'); } catch (_) {}
+      setTimeout(() => { btn.textContent = 'Salvar'; btn.disabled = false; }, 2000);
+    } catch (err) {
+      btn.textContent = 'Salvar';
+      btn.disabled = false;
+      toast('Erro: ' + err.message, 'error');
+    }
+  });
+
+  return card;
+}
+
 function invalidateTypoCache() {
-  try { localStorage.removeItem('typography_css_v1'); } catch (e) {}
+  try { localStorage.removeItem('typography_css_v1'); } catch (_) {}
+  try { localStorage.removeItem('type_styles_css_v1'); } catch (_) {}
 }
 
 // ══════════════════════════════════════════════════════════════

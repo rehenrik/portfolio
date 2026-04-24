@@ -170,6 +170,92 @@ async function getSupabaseClient() {
   return window._supabaseClient;
 }
 
+// ── Global Fonts (type_styles) — fetch, cache, inject ────────
+const TYPE_STYLES_CACHE_KEY = 'type_styles_css_v1';
+
+function buildTypeStylesCSS(fonts, styles) {
+  let css = '';
+
+  // @font-face + CSS vars (reuse existing font logic)
+  const faceRules = [];
+  const roleToFamily = {};
+  for (const f of (fonts || [])) {
+    const srcs = [];
+    if (f.woff2_url) srcs.push(`url("${f.woff2_url}") format("woff2")`);
+    if (f.woff_url)  srcs.push(`url("${f.woff_url}") format("woff")`);
+    if (f.ttf_url)   srcs.push(`url("${f.ttf_url}") format("truetype")`);
+    if (!srcs.length) continue;
+    faceRules.push(
+      `@font-face{font-family:"${f.family_name}";font-style:normal;font-display:swap;` +
+      `font-weight:${f.weight_min||400} ${f.weight_max||f.weight_min||400};src:${srcs.join(',')};}`
+    );
+    if (!roleToFamily[f.role]) roleToFamily[f.role] = f.family_name;
+  }
+  css += faceRules.join('\n');
+
+  const rootBits = [];
+  if (roleToFamily.serif) rootBits.push(`--serif:"${roleToFamily.serif}",Georgia,serif;`);
+  if (roleToFamily.sans)  rootBits.push(`--sans:"${roleToFamily.sans}",system-ui,sans-serif;`);
+  if (roleToFamily.mono)  rootBits.push(`--mono:"${roleToFamily.mono}",ui-monospace,monospace;`);
+  if (rootBits.length) css += `\n:root{${rootBits.join('')}}`;
+
+  for (const s of (styles || [])) {
+    if (!s.css_targets) continue;
+    const t   = s.css_targets;
+    const fam = s.font_role === 'serif' ? 'var(--serif)' : s.font_role === 'mono' ? 'var(--mono)' : 'var(--sans)';
+    css += `\n${t}{font-family:${fam};font-weight:${s.font_weight||'400'};font-size:${s.font_size||'1rem'};` +
+           `line-height:${s.line_height||'1.5'};letter-spacing:${s.letter_spacing||'0'};text-transform:${s.text_transform||'none'};}`;
+
+    if (s.font_size_tablet || s.line_height_tablet) {
+      css += `\n@media(max-width:1024px){${t}{`;
+      if (s.font_size_tablet)   css += `font-size:${s.font_size_tablet};`;
+      if (s.line_height_tablet) css += `line-height:${s.line_height_tablet};`;
+      css += '}}';
+    }
+    if (s.font_size_mobile || s.line_height_mobile) {
+      css += `\n@media(max-width:640px){${t}{`;
+      if (s.font_size_mobile)   css += `font-size:${s.font_size_mobile};`;
+      if (s.line_height_mobile) css += `line-height:${s.line_height_mobile};`;
+      css += '}}';
+    }
+  }
+  return css;
+}
+
+function applyTypeStylesCSS(css) {
+  if (!css) return;
+  let el = document.getElementById('type-styles-css');
+  if (!el) {
+    el = document.createElement('style');
+    el.id = 'type-styles-css';
+    document.head.appendChild(el);
+  }
+  if (el.textContent !== css) el.textContent = css;
+}
+
+if (_isPublicPage) {
+  (function applyCachedTypeStyles() {
+    try {
+      const cached = localStorage.getItem(TYPE_STYLES_CACHE_KEY);
+      if (cached) applyTypeStylesCSS(cached);
+    } catch (_) {}
+  })();
+
+  window._typeStylesPromise = Promise.all([
+    fetch(SUPABASE_REST + '/fonts?select=*', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => []),
+    fetch(SUPABASE_REST + '/type_styles?select=*&order=sort_order.asc', { headers: SUPABASE_HEADERS })
+      .then(r => r.ok ? r.json() : []).catch(() => [])
+  ]).then(([fonts, styles]) => {
+    const css = buildTypeStylesCSS(fonts, styles);
+    try { localStorage.setItem(TYPE_STYLES_CACHE_KEY, css); } catch (_) {}
+    applyTypeStylesCSS(css);
+    return { fonts, styles, css };
+  }).catch(() => ({ fonts: [], styles: [], css: '' }));
+} else {
+  window._typeStylesPromise = Promise.resolve({ fonts: [], styles: [], css: '' });
+}
+
 // ── Site Content CMS — fetch, cache, apply ───────────────────
 const CONTENT_CACHE_KEY = 'site_content_v1';
 

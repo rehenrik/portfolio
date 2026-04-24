@@ -224,3 +224,51 @@ insert into public.projects (title, description, year, tags, image_url, url, "or
     '/work/project-three',
     3
   );
+
+-- ============================================================
+-- GLOBAL FONTS — Design System Typography
+-- ============================================================
+
+create table if not exists public.type_styles (
+  id                  uuid primary key default gen_random_uuid(),
+  name                text not null unique,
+  label               text not null,
+  css_targets         text not null,
+  font_role           text not null default 'sans' check (font_role in ('serif','sans','mono')),
+  font_weight         text default '400',
+  font_size           text default '1rem',
+  font_size_tablet    text default '',
+  font_size_mobile    text default '',
+  line_height         text default '1.5',
+  line_height_tablet  text default '',
+  line_height_mobile  text default '',
+  letter_spacing      text default '0',
+  text_transform      text default 'none',
+  sort_order          int  default 0,
+  updated_at          timestamptz default now()
+);
+
+alter table public.type_styles enable row level security;
+
+create policy "Public reads type_styles"
+  on public.type_styles for select using (true);
+
+create policy "Anon manages type_styles"
+  on public.type_styles for all using (true) with check (true);
+
+-- Seed: 11 semantic styles
+insert into public.type_styles
+  (name, label, css_targets, font_role, font_weight, font_size, font_size_tablet, font_size_mobile, line_height, line_height_tablet, line_height_mobile, letter_spacing, text_transform, sort_order)
+values
+  ('display',         'Display',         '.ts-display',    'serif', '400', 'clamp(4rem,7vw,6rem)',          'clamp(3rem,5vw,4rem)',          '2.75rem',  '1.0',     '',    '',    '-0.04em', 'none',      1),
+  ('h1',              'Heading 1',       'h1',             'serif', '400', 'clamp(2.5rem,5vw,4.5rem)',      'clamp(2rem,4vw,3rem)',          '1.875rem', '1.1',     '',    '',    '-0.03em', 'none',      2),
+  ('h2',              'Heading 2',       'h2',             'serif', '400', 'clamp(2rem,4vw,3rem)',          'clamp(1.5rem,3vw,2.25rem)',     '1.625rem', '1.2',     '',    '',    '-0.02em', 'none',      3),
+  ('h3',              'Heading 3',       'h3',             'sans',  '500', 'clamp(1.5rem,3vw,2rem)',        'clamp(1.25rem,2vw,1.75rem)',    '1.375rem', '1.3',     '',    '',    '-0.01em', 'none',      4),
+  ('h4',              'Heading 4',       'h4',             'sans',  '500', 'clamp(1.25rem,2vw,1.5rem)',     '1.25rem',                       '1.125rem', '1.4',     '',    '',    '-0.01em', 'none',      5),
+  ('paragraph-large', 'Paragraph Large', '.paragraph-large','sans', '300', 'clamp(1.1rem,2vw,1.25rem)',    '1.1rem',                        '1rem',     '1.6',     '',    '',    '-0.01em', 'none',      6),
+  ('paragraph',       'Paragraph',       'p',              'sans',  '400', '1rem',                          '',                              '',         '1.6',     '',    '',    '-0.01em', 'none',      7),
+  ('paragraph-small', 'Paragraph Small', '.paragraph-small','sans', '400', '0.875rem',                     '',                              '',         '1.5',     '',    '',    '0',       'none',      8),
+  ('caption',         'Caption',         '.caption',       'sans',  '400', '0.75rem',                      '',                              '',         '1.4',     '',    '',    '0',       'none',      9),
+  ('button',          'Button',          '.btn',           'sans',  '500', '0.875rem',                     '',                              '',         '1',       '',    '',    '0.02em',  'uppercase', 10),
+  ('link',            'Link',            'a',              'sans',  '400', 'inherit',                      '',                              '',         'inherit', '',    '',    '0',       'none',      11)
+on conflict (name) do nothing;
