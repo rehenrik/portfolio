@@ -169,3 +169,45 @@ async function getSupabaseClient() {
   window._supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   return window._supabaseClient;
 }
+
+// ── Site Content CMS — fetch, cache, apply ───────────────────
+const CONTENT_CACHE_KEY = 'site_content_v1';
+
+function parseInlineMarkdown(str) {
+  return (str || '').replace(/\*(.*?)\*/g, '<em>$1</em>');
+}
+
+function applySiteContent(items) {
+  if (!Array.isArray(items)) return;
+  const map = {};
+  items.forEach(item => {
+    map[`${item.page}__${item.section}__${item.field_key}`] = item.value;
+  });
+  document.querySelectorAll('[data-content]').forEach(el => {
+    const val = map[el.dataset.content];
+    if (val !== undefined) el.innerHTML = parseInlineMarkdown(val);
+  });
+}
+
+if (_isPublicPage) {
+  (function applyCachedContent() {
+    try {
+      const cached = localStorage.getItem(CONTENT_CACHE_KEY);
+      if (cached) applySiteContent(JSON.parse(cached));
+    } catch (_) {}
+  })();
+
+  window._siteContentPromise = fetch(
+    SUPABASE_REST + '/site_content?select=*&page=eq.home&order=sort_order.asc',
+    { headers: SUPABASE_HEADERS }
+  )
+    .then(r => r.ok ? r.json() : [])
+    .then(data => {
+      applySiteContent(data);
+      try { localStorage.setItem(CONTENT_CACHE_KEY, JSON.stringify(data)); } catch (_) {}
+      return data;
+    })
+    .catch(() => []);
+} else {
+  window._siteContentPromise = Promise.resolve([]);
+}

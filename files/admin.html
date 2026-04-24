@@ -1063,6 +1063,136 @@
       .project-row .row-status { display: none; }
       .carousel-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
     }
+
+    /* ── Site Content Panel ────────────────────────────────── */
+    .content-page-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .content-page-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 14px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .content-page-pill.active {
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+      color: var(--fg);
+      border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+      font-weight: 500;
+    }
+
+    .content-section-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .content-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      background: var(--surface);
+      cursor: pointer;
+      user-select: none;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+
+    .content-section-header:hover { background: var(--surface2); }
+
+    .content-section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .content-section-chevron { transition: transform 0.2s; flex-shrink: 0; }
+    .content-section-card.open .content-section-chevron { transform: rotate(180deg); }
+
+    .content-section-body {
+      display: none;
+      flex-direction: column;
+      border-top: 1px solid var(--border);
+    }
+
+    .content-section-card.open .content-section-body { display: flex; }
+
+    .content-field-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 14px 16px;
+      align-items: start;
+    }
+
+    .content-field-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+
+    .content-field-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 7px;
+    }
+
+    .content-field-label {
+      font-size: 0.78rem;
+      color: var(--fg-muted);
+      font-weight: 500;
+    }
+
+    .type-badge {
+      font-size: 0.58rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .type-badge.heading   { background: rgba(99,179,237,0.15); color: #63b3ed; }
+    .type-badge.paragraph { background: rgba(72,187,120,0.15); color: #48bb78; }
+    .type-badge.cta       { background: rgba(254,67,17,0.15);  color: var(--accent); }
+
+    .content-field-dirty-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+
+    .content-field-row.dirty .content-field-dirty-dot { display: block; }
+
+    .content-field-hint {
+      font-size: 0.68rem;
+      color: var(--fg-muted);
+      margin-top: 5px;
+      opacity: 0.7;
+    }
+
+    .content-field-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding-top: 22px;
+      flex-shrink: 0;
+    }
+
+    .content-save-btn:disabled { opacity: 0.35; cursor: default; }
+    .content-save-btn:disabled:hover { opacity: 0.35; }
   </style>
 </head>
 <body>
@@ -1101,6 +1231,7 @@
     <nav class="sidebar-nav">
       <div class="nav-group">
         <span class="nav-group-label">Conteúdos do site</span>
+        <button class="nav-item" data-section="site-content">Textos do site</button>
         <button class="nav-item active" data-section="carousel">Carousel</button>
         <button class="nav-item" data-section="projects">Projetos</button>
       </div>
@@ -1131,6 +1262,25 @@
     </div>
 
     <div class="main-body">
+
+      <!-- Panel: Textos do site ──────────────────────────────── -->
+      <div class="panel" data-panel="site-content">
+
+        <div class="content-page-selector">
+          <button class="content-page-pill active">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Home
+          </button>
+        </div>
+
+        <div id="siteContentSections" style="display:flex;flex-direction:column;gap:8px">
+          <div class="loading-row">
+            <div class="spinner"></div>
+            Carregando conteúdos…
+          </div>
+        </div>
+
+      </div>
 
       <!-- Panel: Carousel ─────────────────────────────────── -->
       <div class="panel active" data-panel="carousel">
@@ -1514,11 +1664,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 const SECTION_TITLES = {
-  carousel:   'Carousel',
-  projects:   'Projetos',
-  typography: 'Tipografia global',
-  fonts:      'Fontes',
-  settings:   'Configurações gerais',
+  'site-content': 'Textos do site',
+  carousel:       'Carousel',
+  projects:       'Projetos',
+  typography:     'Tipografia global',
+  fonts:          'Fontes',
+  settings:       'Configurações gerais',
 };
 
 function switchSection(id) {
@@ -1541,6 +1692,7 @@ function showApp() {
   const app = document.getElementById('app');
   app.style.display = 'flex';
   switchSection('carousel');
+  loadSiteContent();
   loadProjects();
   loadCarouselImages();
   loadTypography();
@@ -2519,6 +2671,145 @@ async function saveFont() {
     progress.classList.remove('visible');
     fill.style.width = '0%';
   }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SITE CONTENT
+// ══════════════════════════════════════════════════════════════
+let siteContentItems = [];
+
+const SECTION_DISPLAY_LABELS = {
+  hero:     'Hero',
+  projects: 'Seção Projetos',
+  about:    'Seção About',
+  skills:   'Seção Skills',
+  contact:  'Seção Contato',
+};
+
+async function loadSiteContent() {
+  const container = document.getElementById('siteContentSections');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando conteúdos…</div>';
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('site_content')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    siteContentItems = data || [];
+    renderSiteContent(siteContentItems);
+  } catch (err) {
+    container.innerHTML = `<div class="error-msg" style="display:block;padding:1rem">Erro ao carregar: ${esc(err.message)}</div>`;
+  }
+}
+
+function renderSiteContent(items) {
+  const container = document.getElementById('siteContentSections');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const sections = {};
+  items.forEach(item => {
+    if (!sections[item.section]) sections[item.section] = [];
+    sections[item.section].push(item);
+  });
+
+  Object.entries(sections).forEach(([sectionKey, fields], index) => {
+    const card = document.createElement('div');
+    card.className = 'content-section-card' + (index === 0 ? ' open' : '');
+
+    const label = SECTION_DISPLAY_LABELS[sectionKey] || sectionKey;
+
+    card.innerHTML = `
+      <div class="content-section-header">
+        <span class="content-section-title">
+          ${esc(label)}
+          <span class="count-badge">${fields.length}</span>
+        </span>
+        <svg class="content-section-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--fg-muted)"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="content-section-body"></div>
+    `;
+
+    const body = card.querySelector('.content-section-body');
+
+    fields.forEach(field => {
+      const row = document.createElement('div');
+      row.className = 'content-field-row';
+      row.dataset.fieldId = field.id;
+
+      const badgeClass = field.component === 'heading' ? 'heading'
+                       : field.component === 'cta'     ? 'cta'
+                       : 'paragraph';
+      const badgeText  = field.component === 'heading' ? 'H'
+                       : field.component === 'cta'     ? 'CTA'
+                       : '¶';
+
+      const isTextarea = field.field_type === 'textarea';
+      const showHint   = field.component === 'heading' || field.component === 'cta';
+
+      row.innerHTML = `
+        <div>
+          <div class="content-field-header">
+            <span class="content-field-label">${esc(field.field_label)}</span>
+            <span class="type-badge ${badgeClass}">${badgeText}</span>
+            <span class="content-field-dirty-dot"></span>
+          </div>
+          ${isTextarea
+            ? `<textarea class="field textarea" rows="3" style="resize:vertical;width:100%">${esc(field.value)}</textarea>`
+            : `<input type="text" class="field input" style="width:100%" value="${esc(field.value)}" />`
+          }
+          ${showHint ? '<p class="content-field-hint">Use *asteriscos* para itálico</p>' : ''}
+        </div>
+        <div class="content-field-actions">
+          <button class="btn btn-primary btn-sm content-save-btn" disabled>Salvar</button>
+        </div>
+      `;
+
+      const input   = row.querySelector('input, textarea');
+      const saveBtn = row.querySelector('.content-save-btn');
+      let   originalValue = field.value;
+
+      input.addEventListener('input', () => {
+        const dirty = input.value !== originalValue;
+        row.classList.toggle('dirty', dirty);
+        saveBtn.disabled = !dirty;
+      });
+
+      saveBtn.addEventListener('click', async () => {
+        const newValue = input.value;
+        saveBtn.disabled = true;
+        saveBtn.textContent = '…';
+        try {
+          const client = await getClient();
+          const { error } = await client
+            .from('site_content')
+            .update({ value: newValue, updated_at: new Date().toISOString() })
+            .eq('id', field.id);
+          if (error) throw error;
+          originalValue = newValue;
+          row.classList.remove('dirty');
+          saveBtn.textContent = 'Salvo ✓';
+          toast('Texto atualizado', 'success');
+          try { localStorage.removeItem('site_content_v1'); } catch (_) {}
+          setTimeout(() => { saveBtn.textContent = 'Salvar'; saveBtn.disabled = true; }, 2000);
+        } catch (err) {
+          saveBtn.textContent = 'Salvar';
+          saveBtn.disabled = false;
+          toast('Erro: ' + err.message, 'error');
+        }
+      });
+
+      body.appendChild(row);
+    });
+
+    card.querySelector('.content-section-header').addEventListener('click', () => {
+      card.classList.toggle('open');
+    });
+
+    container.appendChild(card);
+  });
 }
 
 // ══════════════════════════════════════════════════════════════

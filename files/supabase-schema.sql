@@ -141,6 +141,60 @@ begin
   end if;
 end $$;
 
+-- ============================================================
+-- SITE CONTENT CMS
+-- ============================================================
+
+create table if not exists public.site_content (
+  id           uuid primary key default gen_random_uuid(),
+  page         text not null,
+  section      text not null,
+  component    text not null,       -- 'heading' | 'paragraph' | 'cta'
+  field_key    text not null,
+  field_label  text not null,
+  field_type   text default 'text', -- 'text' | 'textarea'
+  value        text not null default '',
+  sort_order   int  default 0,
+  updated_at   timestamptz default now(),
+  unique (page, section, field_key)
+);
+
+alter table public.site_content enable row level security;
+
+create policy "Public can read site_content"
+  on public.site_content for select using (true);
+
+create policy "Anon can update site_content"
+  on public.site_content for update using (true) with check (true);
+
+-- Seed: current static text from index.html (Home page)
+insert into public.site_content (page, section, component, field_key, field_label, field_type, value, sort_order) values
+  -- Hero
+  ('home','hero','heading',   'h1_line1',       'Título — linha 1',          'text',     'Visual and Product Designer',                                                                                                                                                                        1),
+  ('home','hero','heading',   'h1_line2',       'Título — linha 2',          'text',     'shaping *intuitive* experiences',                                                                                                                                                                    2),
+  ('home','hero','paragraph', 'subtitle',       'Subtítulo',                 'textarea', 'A multifaceted designer with over 10 years of agency experience, focused on purposeful, balanced user interfaces.',                                                                                  3),
+  ('home','hero','cta',       'cta_primary',    'Texto do botão principal',  'text',     'Let''s talk',                                                                                                                                                                                        4),
+  -- Projects
+  ('home','projects','heading',   'h2_line1',   'Título — linha 1',          'text',     'Turning ideas into',                                                                                                                                                                                 5),
+  ('home','projects','heading',   'h2_line2',   'Título — linha 2',          'text',     '*usable* Designs',                                                                                                                                                                                   6),
+  ('home','projects','paragraph', 'description','Descrição da seção',        'textarea', 'Projects that simplify complexity and improve how people interact.',                                                                                                                                  7),
+  -- About
+  ('home','about','heading',   'h2_line1',      'Título — linha 1',          'text',     'Designing',                                                                                                                                                                                          8),
+  ('home','about','heading',   'h2_line2',      'Título — linha 2',          'text',     'with *depth*',                                                                                                                                                                                       9),
+  ('home','about','paragraph', 'intro',         'Parágrafo introdutório',    'textarea', 'Just me, turning sketches and clicks into experiences that feel alive.',                                                                                                                             10),
+  ('home','about','paragraph', 'paragraph_2',   'Parágrafo — história',      'textarea', 'I grew up in São Paulo, and since I was little, drawing has been a part of my life. In my childhood, I started playing around with Photoshop, and there I discovered a new way to explore creativity. Today, it is in design that I have found my path to transform ideas into something real.',  11),
+  ('home','about','cta',       'cta_about',     'Botão "About"',             'text',     'A short summary →',                                                                                                                                                                                 12),
+  ('home','about','paragraph', 'paragraph_3',   'Parágrafo — Design Systems','textarea', 'I focus on designing interfaces that are not only clean and intuitive, but also enjoyable to use. Alongside that, I build strong and scalable Design Systems that give teams consistency.',          13),
+  ('home','about','cta',       'cta_playground','Botão "Playground"',        'text',     'Explore Playground →',                                                                                                                                                                               14),
+  -- Skills
+  ('home','skills','heading',  'h2',            'Título da seção',           'text',     'Skills I''m *confident* in',                                                                                                                                                                        15),
+  -- Contact
+  ('home','contact','heading',   'h2_line1',    'Título — linha 1',          'text',     'I''d love to',                                                                                                                                                                                      16),
+  ('home','contact','heading',   'h2_line2',    'Título — linha 2',          'text',     '*talk* to you',                                                                                                                                                                                     17),
+  ('home','contact','paragraph', 'description', 'Texto descritivo',          'textarea', 'Whether you''ve got a project in mind, a question, or just want to say hi.',                                                                                                                        18),
+  ('home','contact','cta',       'cta_primary', 'Texto do botão',            'text',     'Let''s talk',                                                                                                                                                                                       19)
+on conflict (page, section, field_key) do nothing;
+
 -- ── SEED DATA (example) ─────────────────────────────────────
 insert into public.projects (title, description, year, tags, image_url, url, "order") values
   (
