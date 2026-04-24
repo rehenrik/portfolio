@@ -533,3 +533,97 @@ values
    '#FE4311', '2px', '2px')
 
 on conflict (name) do nothing;
+
+-- ============================================================
+-- GLOBAL BUTTONS v2 — Variant × Size × Color model
+-- ============================================================
+
+-- Tamanhos de botão (XS → XL)
+create table if not exists public.button_sizes (
+  id            uuid primary key default gen_random_uuid(),
+  name          text not null unique,
+  label         text not null,
+  sort_order    int  default 0,
+  padding_x     text default '12px',
+  padding_y     text default '8px',
+  font_size     text default '14px',
+  border_radius text default '6px',
+  icon_gap      text default '6px',
+  icon_size     text default '16px',
+  created_at    timestamptz default now()
+);
+
+alter table public.button_sizes enable row level security;
+create policy "Public reads button_sizes"  on public.button_sizes for select using (true);
+create policy "Anon manages button_sizes"  on public.button_sizes for all    using (true) with check (true);
+
+insert into public.button_sizes (name, label, sort_order, padding_x, padding_y, font_size, border_radius, icon_gap, icon_size) values
+  ('xs', 'Extra Small', 1, '8px',  '3px',  '11px', '4px',  '4px',  '14px'),
+  ('sm', 'Small',       2, '12px', '5px',  '13px', '6px',  '5px',  '15px'),
+  ('md', 'Medium',      3, '16px', '8px',  '14px', '8px',  '6px',  '16px'),
+  ('lg', 'Large',       4, '20px', '10px', '16px', '10px', '8px',  '18px'),
+  ('xl', 'Extra Large', 5, '28px', '14px', '18px', '12px', '10px', '20px')
+on conflict (name) do nothing;
+
+-- Estilos de botão (Variant × Color = 20 combinações)
+create table if not exists public.button_styles (
+  id                  uuid primary key default gen_random_uuid(),
+  variant             text not null,
+  color               text not null,
+  unique(variant, color),
+  sort_order          int  default 0,
+  -- Default state
+  bg_color            text default 'transparent',
+  text_color          text default '#000000',
+  border_color        text default 'transparent',
+  border_width        text default '0px',
+  -- Hover state
+  hover_bg_color      text default '',
+  hover_text_color    text default '',
+  hover_border_color  text default '',
+  hover_opacity       text default '',
+  -- Active state
+  active_bg_color     text default '',
+  active_text_color   text default '',
+  active_border_color text default '',
+  -- Disabled state
+  disabled_opacity    text default '0.4',
+  created_at          timestamptz default now()
+);
+
+alter table public.button_styles enable row level security;
+create policy "Public reads button_styles"  on public.button_styles for select using (true);
+create policy "Anon manages button_styles"  on public.button_styles for all    using (true) with check (true);
+
+insert into public.button_styles
+  (variant, color, sort_order,
+   bg_color, text_color, border_color, border_width,
+   hover_bg_color, hover_text_color, hover_border_color, hover_opacity,
+   active_bg_color, active_text_color, active_border_color,
+   disabled_opacity)
+values
+  -- Contained
+  ('contained','primary',   1, '#FE4311','#ffffff','transparent','0px', '#d43a0e','','','', '#b83209','','', '0.4'),
+  ('contained','secondary', 2, '#6366f1','#ffffff','transparent','0px', '#4f52d4','','','', '#4346c0','','', '0.4'),
+  ('contained','gray',      3, '#52525b','#ffffff','transparent','0px', '#3f3f46','','','', '#27272a','','', '0.4'),
+  ('contained','black',     4, '#09090b','#ffffff','transparent','0px', '#27272a','','','', '#3f3f46','','', '0.4'),
+  ('contained','white',     5, '#f4f4f5','#09090b','transparent','0px', '#e4e4e7','','','', '#d4d4d8','','', '0.4'),
+  -- Outline
+  ('outline',  'primary',   6, 'transparent','#FE4311','#FE4311','1.5px', 'rgba(254,67,17,0.08)','','','', 'rgba(254,67,17,0.15)','','', '0.4'),
+  ('outline',  'secondary', 7, 'transparent','#6366f1','#6366f1','1.5px', 'rgba(99,102,241,0.08)','','','', 'rgba(99,102,241,0.15)','','', '0.4'),
+  ('outline',  'gray',      8, 'transparent','#52525b','#52525b','1.5px', 'rgba(82,82,91,0.08)','','','', 'rgba(82,82,91,0.15)','','', '0.4'),
+  ('outline',  'black',     9, 'transparent','#09090b','#09090b','1.5px', 'rgba(9,9,11,0.08)','','','', 'rgba(9,9,11,0.15)','','', '0.4'),
+  ('outline',  'white',    10, 'transparent','#f4f4f5','#f4f4f5','1.5px', 'rgba(244,244,245,0.1)','','','', 'rgba(244,244,245,0.2)','','', '0.4'),
+  -- Link
+  ('link',     'primary',  11, 'transparent','#FE4311','transparent','0px', '','#b83209','','', '','#d43a0e','', '0.4'),
+  ('link',     'secondary',12, 'transparent','#6366f1','transparent','0px', '','#4f52d4','','', '','#4346c0','', '0.4'),
+  ('link',     'gray',     13, 'transparent','#52525b','transparent','0px', '','#3f3f46','','', '','#27272a','', '0.4'),
+  ('link',     'black',    14, 'transparent','#09090b','transparent','0px', '','#27272a','','', '','#3f3f46','', '0.4'),
+  ('link',     'white',    15, 'transparent','#f4f4f5','transparent','0px', '','#e4e4e7','','', '','#d4d4d8','', '0.4'),
+  -- Text
+  ('text',     'primary',  16, 'transparent','#FE4311','transparent','0px', 'rgba(254,67,17,0.08)','','','', 'rgba(254,67,17,0.15)','','', '0.4'),
+  ('text',     'secondary',17, 'transparent','#6366f1','transparent','0px', 'rgba(99,102,241,0.08)','','','', 'rgba(99,102,241,0.15)','','', '0.4'),
+  ('text',     'gray',     18, 'transparent','#52525b','transparent','0px', 'rgba(82,82,91,0.08)','','','', 'rgba(82,82,91,0.15)','','', '0.4'),
+  ('text',     'black',    19, 'transparent','#09090b','transparent','0px', 'rgba(9,9,11,0.06)','','','', 'rgba(9,9,11,0.12)','','', '0.4'),
+  ('text',     'white',    20, 'transparent','#f4f4f5','transparent','0px', 'rgba(244,244,245,0.1)','','','', 'rgba(244,244,245,0.2)','','', '0.4')
+on conflict (variant, color) do nothing;
