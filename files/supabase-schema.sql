@@ -405,3 +405,131 @@ insert into public.color_assignments (css_var, label, category, light_token, dar
   ('--card-bg',  'Fundo de cards',    'componente', 'neutral-100',  'neutral-900',  3),
   ('--fg',       'Texto principal',   'texto',      'neutral-950',  'neutral-50',   4)
 on conflict (css_var) do nothing;
+
+-- ============================================================
+-- GLOBAL BUTTONS — Design System de Botões
+-- ============================================================
+
+create table if not exists public.button_tokens (
+  id              uuid primary key default gen_random_uuid(),
+  name            text not null unique,
+  label           text not null,
+  sort_order      int  default 0,
+
+  -- Default state
+  bg_color        text default 'transparent',
+  text_color      text default '#000000',
+  border_color    text default 'transparent',
+  border_width    text default '0px',
+  border_radius   text default '0.25rem',
+  padding_x       text default '1rem',
+  padding_y       text default '0.5rem',
+  icon_position   text default 'left',
+  icon_size       text default '1rem',
+  icon_gap        text default '0.5rem',
+  type_style_name text default '',
+  font_weight     text default '500',
+  font_size       text default '1rem',
+
+  -- Hover state
+  hover_bg_color      text default '',
+  hover_text_color    text default '',
+  hover_border_color  text default '',
+  hover_transform     text default '',
+  hover_opacity       text default '',
+
+  -- Active state
+  active_bg_color     text default '',
+  active_text_color   text default '',
+  active_border_color text default '',
+  active_transform    text default '',
+
+  -- Focus state
+  focus_ring_color    text default '',
+  focus_ring_width    text default '2px',
+  focus_ring_offset   text default '2px',
+
+  -- Disabled state
+  disabled_opacity    text default '0.4',
+  disabled_cursor     text default 'not-allowed',
+
+  -- Responsive tablet (max 1024px)
+  tablet_padding_x    text default '',
+  tablet_padding_y    text default '',
+  tablet_font_size    text default '',
+
+  -- Responsive mobile (max 640px)
+  mobile_padding_x    text default '',
+  mobile_padding_y    text default '',
+  mobile_font_size    text default '',
+
+  updated_at      timestamptz default now()
+);
+
+alter table public.button_tokens enable row level security;
+
+create policy "Public reads button_tokens"
+  on public.button_tokens for select using (true);
+
+create policy "Anon manages button_tokens"
+  on public.button_tokens for all using (true) with check (true);
+
+-- Seed: 7 variantes com defaults visuais coerentes
+insert into public.button_tokens
+  (name, label, sort_order,
+   bg_color, text_color, border_color, border_width, border_radius, padding_x, padding_y,
+   font_size, font_weight, icon_position, icon_size, icon_gap,
+   hover_bg_color, hover_text_color, hover_border_color, hover_transform,
+   active_transform, disabled_opacity,
+   focus_ring_color, focus_ring_width, focus_ring_offset)
+values
+  ('primary',   'Primary',   1,
+   '#FE4311', '#ffffff', 'transparent', '0px', '0.5rem', '1.25rem', '0.625rem',
+   '0.875rem', '500', 'left', '1rem', '0.5rem',
+   '#D93600', '#ffffff', 'transparent', 'translateY(-1px)',
+   'scale(0.97)', '0.4',
+   '#FE4311', '2px', '3px'),
+
+  ('secondary', 'Secondary', 2,
+   'rgba(254,67,17,0.1)', '#FE4311', 'transparent', '0px', '0.5rem', '1.25rem', '0.625rem',
+   '0.875rem', '500', 'left', '1rem', '0.5rem',
+   'rgba(254,67,17,0.18)', '#D93600', 'transparent', 'translateY(-1px)',
+   'scale(0.97)', '0.4',
+   '#FE4311', '2px', '3px'),
+
+  ('contained', 'Contained', 3,
+   '#1A1715', '#F5F7FA', 'transparent', '0px', '0.5rem', '1.25rem', '0.625rem',
+   '0.875rem', '500', 'left', '1rem', '0.5rem',
+   '#2E2923', '#F5F7FA', 'transparent', 'translateY(-1px)',
+   'scale(0.97)', '0.4',
+   '#1A1715', '2px', '3px'),
+
+  ('outline',   'Outline',   4,
+   'transparent', '#1A1715', '#1A1715', '1.5px', '0.5rem', '1.25rem', '0.625rem',
+   '0.875rem', '500', 'left', '1rem', '0.5rem',
+   '#1A1715', '#ffffff', '#1A1715', 'translateY(-1px)',
+   'scale(0.97)', '0.4',
+   '#1A1715', '2px', '3px'),
+
+  ('online',    'Online',    5,
+   '#22c55e', '#ffffff', 'transparent', '0px', '99px', '1.25rem', '0.625rem',
+   '0.875rem', '500', 'left', '1rem', '0.5rem',
+   '#16a34a', '#ffffff', 'transparent', 'translateY(-1px)',
+   'scale(0.97)', '0.4',
+   '#22c55e', '2px', '3px'),
+
+  ('text',      'Text',      6,
+   'transparent', '#1A1715', 'transparent', '0px', '0.25rem', '0.5rem', '0.375rem',
+   '0.875rem', '400', 'right', '1rem', '0.375rem',
+   'transparent', '#FE4311', 'transparent', '',
+   '', '0.4',
+   '#1A1715', '2px', '3px'),
+
+  ('link',      'Link',      7,
+   'transparent', '#FE4311', 'transparent', '0px', '0px', '0px', '0px',
+   '0.875rem', '400', 'right', '0.875rem', '0.25rem',
+   'transparent', '#D93600', 'transparent', '',
+   '', '0.4',
+   '#FE4311', '2px', '2px')
+
+on conflict (name) do nothing;

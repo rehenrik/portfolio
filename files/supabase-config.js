@@ -368,3 +368,83 @@ if (_isPublicPage) {
 async function getColorsData() {
   return await window._colorsPromise;
 }
+
+// ── Global Buttons CSS ───────────────────────────────────────
+const BUTTON_CACHE_KEY = 'button_css_v1';
+
+function buildButtonsCSS(buttons) {
+  let css = '';
+  for (const b of (buttons || [])) {
+    if (!b.name) continue;
+    const cls = `.btn-${b.name}`;
+    css += `\n${cls}{display:inline-flex;align-items:center;justify-content:center;gap:${b.icon_gap||'0.5rem'};padding:${b.padding_y||'0.5rem'} ${b.padding_x||'1rem'};background:${b.bg_color||'transparent'};color:${b.text_color||'#000'};border:${b.border_width||'0px'} solid ${b.border_color||'transparent'};border-radius:${b.border_radius||'0.25rem'};font-size:${b.font_size||'1rem'};font-weight:${b.font_weight||'500'};font-family:inherit;cursor:pointer;transition:all 0.2s ease;text-decoration:none;line-height:1;}`;
+    const hHas = b.hover_bg_color || b.hover_text_color || b.hover_border_color || b.hover_transform || b.hover_opacity;
+    if (hHas) {
+      css += `\n${cls}:hover{`;
+      if (b.hover_bg_color)     css += `background:${b.hover_bg_color};`;
+      if (b.hover_text_color)   css += `color:${b.hover_text_color};`;
+      if (b.hover_border_color) css += `border-color:${b.hover_border_color};`;
+      if (b.hover_transform)    css += `transform:${b.hover_transform};`;
+      if (b.hover_opacity)      css += `opacity:${b.hover_opacity};`;
+      css += `}`;
+    }
+    const aHas = b.active_bg_color || b.active_text_color || b.active_border_color || b.active_transform;
+    if (aHas) {
+      css += `\n${cls}:active{`;
+      if (b.active_bg_color)      css += `background:${b.active_bg_color};`;
+      if (b.active_text_color)    css += `color:${b.active_text_color};`;
+      if (b.active_border_color)  css += `border-color:${b.active_border_color};`;
+      if (b.active_transform)     css += `transform:${b.active_transform};`;
+      css += `}`;
+    }
+    if (b.focus_ring_color || b.focus_ring_width) {
+      css += `\n${cls}:focus-visible{outline:${b.focus_ring_width||'2px'} solid ${b.focus_ring_color||'currentColor'};outline-offset:${b.focus_ring_offset||'2px'};}`;
+    }
+    css += `\n${cls}:disabled,${cls}[aria-disabled="true"]{opacity:${b.disabled_opacity||'0.4'};cursor:${b.disabled_cursor||'not-allowed'};pointer-events:none;}`;
+    if (b.tablet_padding_x || b.tablet_padding_y || b.tablet_font_size) {
+      css += `\n@media(max-width:1024px){${cls}{`;
+      if (b.tablet_padding_x || b.tablet_padding_y) css += `padding:${b.tablet_padding_y||b.padding_y||'0.5rem'} ${b.tablet_padding_x||b.padding_x||'1rem'};`;
+      if (b.tablet_font_size) css += `font-size:${b.tablet_font_size};`;
+      css += `}}`;
+    }
+    if (b.mobile_padding_x || b.mobile_padding_y || b.mobile_font_size) {
+      css += `\n@media(max-width:640px){${cls}{`;
+      if (b.mobile_padding_x || b.mobile_padding_y) css += `padding:${b.mobile_padding_y||b.padding_y||'0.5rem'} ${b.mobile_padding_x||b.padding_x||'1rem'};`;
+      if (b.mobile_font_size) css += `font-size:${b.mobile_font_size};`;
+      css += `}}`;
+    }
+  }
+  return css;
+}
+
+function applyButtonsCSS(css) {
+  if (!css) return;
+  let el = document.getElementById('button-tokens-css');
+  if (!el) { el = document.createElement('style'); el.id = 'button-tokens-css'; document.head.appendChild(el); }
+  if (el.textContent !== css) el.textContent = css;
+}
+
+if (_isPublicPage) {
+  (function applyCachedButtons() {
+    try { const c = localStorage.getItem(BUTTON_CACHE_KEY); if (c) applyButtonsCSS(c); } catch (_) {}
+  })();
+
+  window._buttonsPromise = fetch(
+    SUPABASE_REST + '/button_tokens?select=*&order=sort_order.asc',
+    { headers: SUPABASE_HEADERS }
+  )
+    .then(r => r.ok ? r.json() : [])
+    .then(buttons => {
+      const css = buildButtonsCSS(buttons);
+      try { localStorage.setItem(BUTTON_CACHE_KEY, css); } catch (_) {}
+      applyButtonsCSS(css);
+      return { buttons, css };
+    })
+    .catch(() => ({ buttons: [], css: '' }));
+} else {
+  window._buttonsPromise = Promise.resolve({ buttons: [], css: '' });
+}
+
+async function getButtonsData() {
+  return await window._buttonsPromise;
+}

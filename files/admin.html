@@ -1225,6 +1225,16 @@
 
     .ts-card.dirty .ts-card-footer .ts-dirty-msg { display: block; }
 
+    /* ── Global Buttons Panel ───────────────────────────────── */
+    .ts-controls-row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .btn-state-panel { display: none; }
+    .btn-state-panel.active { display: flex; flex-direction: column; gap: 16px; }
+    .ts-color-ctrl { display: flex; align-items: center; gap: 6px; }
+    .ts-color-swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; padding: 0; background: transparent; }
+    .ts-color-text { flex: 1; min-width: 0; }
+    .ts-btn-preview-area { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
+    .ts-btn-preview-area button { pointer-events: none; user-select: none; }
+
     /* ── Global Colors Panel ────────────────────────────────── */
     .cf-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .cf-card-header { padding: 12px 16px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
@@ -1433,6 +1443,7 @@
         <span class="nav-group-label">Design System</span>
         <button class="nav-item" data-section="typography">Global Fonts</button>
         <button class="nav-item" data-section="colors">Global Colors</button>
+        <button class="nav-item" data-section="buttons">Global Buttons</button>
         <button class="nav-item" data-section="fonts">Fontes</button>
       </div>
       <div class="nav-group">
@@ -1542,6 +1553,20 @@
 
         <div id="typeStylesContainer" style="display:flex;flex-direction:column;gap:8px">
           <div class="loading-row"><div class="spinner"></div>Carregando estilos…</div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Global Buttons ──────────────────────────── -->
+      <div class="panel" data-panel="buttons">
+
+        <div class="section-top" style="padding-bottom:0">
+          <h2>Global Buttons <span class="count-badge" id="btnCountBadge">0</span></h2>
+          <p style="font-size:0.8rem;color:var(--fg-muted)">Estilos globais de botões — variantes, estados e responsividade.</p>
+        </div>
+
+        <div id="buttonsContainer" style="display:flex;flex-direction:column;gap:8px">
+          <div class="loading-row"><div class="spinner"></div>Carregando botões…</div>
         </div>
 
       </div>
@@ -1880,6 +1905,7 @@ const SECTION_TITLES = {
   projects:       'Projetos',
   typography:     'Global Fonts',
   colors:         'Global Colors',
+  buttons:        'Global Buttons',
   fonts:          'Fontes',
   settings:       'Configurações gerais',
 };
@@ -1909,6 +1935,7 @@ function showApp() {
   loadCarouselImages();
   loadTypography();
   loadColors();
+  loadButtons();
   loadFonts();
 }
 
@@ -3520,6 +3547,339 @@ function renderSiteContent(items) {
 
     container.appendChild(card);
   });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  GLOBAL BUTTONS
+// ══════════════════════════════════════════════════════════════
+let buttonData = [];
+
+const BTN_STATES = [
+  { key: 'default',    label: 'Padrão'     },
+  { key: 'hover',      label: 'Hover'      },
+  { key: 'active',     label: 'Active'     },
+  { key: 'focus',      label: 'Focus'      },
+  { key: 'disabled',   label: 'Desativado' },
+  { key: 'responsive', label: 'Responsivo' },
+];
+
+const BTN_ICON_SVG = `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+function invalidateButtonCache() {
+  try { localStorage.removeItem('button_css_v1'); } catch (_) {}
+}
+
+async function loadButtons() {
+  const container = document.getElementById('buttonsContainer');
+  if (!container) return;
+  container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando botões…</div>';
+  try {
+    const client = await getClient();
+    const { data, error } = await client
+      .from('button_tokens')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    buttonData = data || [];
+    document.getElementById('btnCountBadge').textContent = buttonData.length;
+    renderButtons();
+  } catch (err) {
+    container.innerHTML = `<div class="error-msg" style="display:block;padding:1rem">Erro: ${esc(err.message)}</div>`;
+  }
+}
+
+function renderButtons() {
+  const container = document.getElementById('buttonsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  buttonData.forEach((btn, i) => container.appendChild(buildButtonCard(btn, i === 0)));
+}
+
+function buildButtonCard(btn, isOpen = false) {
+  const card = document.createElement('div');
+  card.className = 'ts-card' + (isOpen ? ' open' : '');
+  card.dataset.id = btn.id;
+
+  const local = { ...btn };
+  let currentState = 'default';
+
+  function buildPreviewStyle(state) {
+    let s = `border-radius:${local.border_radius||'0.25rem'};`;
+    s += `padding:${local.padding_y||'0.5rem'} ${local.padding_x||'1rem'};`;
+    s += `font-size:${local.font_size||'0.875rem'};`;
+    s += `font-weight:${local.font_weight||'500'};`;
+    s += `display:inline-flex;align-items:center;gap:${local.icon_gap||'0.5rem'};`;
+    s += `border-style:solid;border-width:${local.border_width||'0px'};`;
+    s += `cursor:pointer;font-family:inherit;line-height:1;transition:all 0.2s;white-space:nowrap;`;
+    if (state === 'hover') {
+      s += `background:${local.hover_bg_color||local.bg_color||'transparent'};`;
+      s += `color:${local.hover_text_color||local.text_color||'#000'};`;
+      s += `border-color:${local.hover_border_color||local.border_color||'transparent'};`;
+      if (local.hover_transform) s += `transform:${local.hover_transform};`;
+      if (local.hover_opacity)   s += `opacity:${local.hover_opacity};`;
+    } else if (state === 'active') {
+      s += `background:${local.active_bg_color||local.bg_color||'transparent'};`;
+      s += `color:${local.active_text_color||local.text_color||'#000'};`;
+      s += `border-color:${local.active_border_color||local.border_color||'transparent'};`;
+      if (local.active_transform) s += `transform:${local.active_transform};`;
+    } else if (state === 'focus') {
+      s += `background:${local.bg_color||'transparent'};`;
+      s += `color:${local.text_color||'#000'};`;
+      s += `border-color:${local.border_color||'transparent'};`;
+      s += `outline:${local.focus_ring_width||'2px'} solid ${local.focus_ring_color||'#005fcc'};`;
+      s += `outline-offset:${local.focus_ring_offset||'2px'};`;
+    } else if (state === 'disabled') {
+      s += `background:${local.bg_color||'transparent'};`;
+      s += `color:${local.text_color||'#000'};`;
+      s += `border-color:${local.border_color||'transparent'};`;
+      s += `opacity:${local.disabled_opacity||'0.4'};`;
+      s += `cursor:${local.disabled_cursor||'not-allowed'};`;
+    } else {
+      s += `background:${local.bg_color||'transparent'};`;
+      s += `color:${local.text_color||'#000'};`;
+      s += `border-color:${local.border_color||'transparent'};`;
+    }
+    return s;
+  }
+
+  function buildButtonContent(withIcon) {
+    const pos = local.icon_position || 'left';
+    const labelText = esc(local.label || btn.label);
+    const iconSpan = `<span style="width:${local.icon_size||'1em'};height:${local.icon_size||'1em'};display:inline-flex;align-items:center;flex-shrink:0">${BTN_ICON_SVG}</span>`;
+    if (!withIcon || pos === 'none') return labelText;
+    return pos === 'right' ? `${labelText}${iconSpan}` : `${iconSpan}${labelText}`;
+  }
+
+  function colorRow(field, label, fallback) {
+    const val = local[field] || '';
+    const swatchVal = /^#[0-9a-fA-F]{3,6}$/.test(val) ? val : (fallback || '#000000');
+    return `<div class="ts-ctrl">
+      <span class="ts-ctrl-label">${label}</span>
+      <div class="ts-color-ctrl">
+        <input type="color" class="ts-color-swatch" data-field="${field}" value="${swatchVal}">
+        <input type="text"  class="field ts-color-text" data-field="${field}" value="${esc(val)}" placeholder="${fallback||'herda padrão'}">
+      </div>
+    </div>`;
+  }
+
+  function textRow(field, label, placeholder, val) {
+    return `<div class="ts-ctrl">
+      <span class="ts-ctrl-label">${label}</span>
+      <input type="text" class="field" data-field="${field}" value="${esc(val !== undefined ? val : (local[field]||''))}" placeholder="${placeholder}">
+    </div>`;
+  }
+
+  function selectRow(field, label, options, current) {
+    const opts = options.map(v => `<option value="${v}"${(current||local[field])===v?' selected':''}>${v}</option>`).join('');
+    return `<div class="ts-ctrl"><span class="ts-ctrl-label">${label}</span><select class="field" data-field="${field}">${opts}</select></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="ts-card-header">
+      <div class="ts-card-meta">
+        <span class="ts-card-name">${esc(btn.name)}</span>
+        <span class="ts-card-label">${esc(btn.label)}</span>
+      </div>
+      <div class="ts-btn-preview-area">
+        <button tabindex="-1" style="${buildPreviewStyle('default')}">${buildButtonContent(false)}</button>
+        <button tabindex="-1" style="${buildPreviewStyle('default')}">${buildButtonContent(true)}</button>
+      </div>
+      <svg class="ts-card-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="ts-card-body">
+
+      <div style="padding:10px 16px 10px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px">
+        ${BTN_STATES.map(s => `<button class="ts-bp-btn btn-state-tab${s.key==='default'?' active':''}" data-state="${s.key}" style="width:auto;padding:0 12px">${s.label}</button>`).join('')}
+      </div>
+
+      <div class="ts-controls">
+
+        <div class="btn-state-panel active" data-panel="default">
+          <div class="ts-controls-row cols-4">
+            ${colorRow('bg_color',     'Background', 'transparent')}
+            ${colorRow('text_color',   'Cor do texto', '#000000')}
+            ${colorRow('border_color', 'Cor da borda', 'transparent')}
+            ${textRow('border_width',  'Largura da borda', '0px')}
+          </div>
+          <div class="ts-controls-row cols-3">
+            ${textRow('border_radius', 'Border Radius', '0.25rem')}
+            ${textRow('padding_x',     'Padding X', '1rem')}
+            ${textRow('padding_y',     'Padding Y', '0.5rem')}
+          </div>
+          <div class="ts-controls-row cols-3">
+            ${selectRow('icon_position', 'Posição do ícone', ['left','right','none'], local.icon_position||'left')}
+            ${textRow('icon_size',  'Tamanho do ícone', '1rem')}
+            ${textRow('icon_gap',   'Gap Texto-Ícone', '0.5rem')}
+          </div>
+          <div class="ts-controls-row cols-2">
+            ${textRow('font_size',   'Font Size', '0.875rem')}
+            ${selectRow('font_weight', 'Font Weight', ['300','400','500','600','700'], local.font_weight||'500')}
+          </div>
+        </div>
+
+        <div class="btn-state-panel" data-panel="hover">
+          <div class="ts-controls-row cols-3">
+            ${colorRow('hover_bg_color',     'Background (hover)', '')}
+            ${colorRow('hover_text_color',   'Texto (hover)', '')}
+            ${colorRow('hover_border_color', 'Borda (hover)', '')}
+          </div>
+          <div class="ts-controls-row cols-2">
+            ${textRow('hover_transform', 'Transform (hover)', 'translateY(-1px)')}
+            ${textRow('hover_opacity',   'Opacidade (hover)', '1')}
+          </div>
+        </div>
+
+        <div class="btn-state-panel" data-panel="active">
+          <div class="ts-controls-row cols-3">
+            ${colorRow('active_bg_color',     'Background (active)', '')}
+            ${colorRow('active_text_color',   'Texto (active)', '')}
+            ${colorRow('active_border_color', 'Borda (active)', '')}
+          </div>
+          <div class="ts-controls-row cols-1">
+            ${textRow('active_transform', 'Transform (active)', 'scale(0.97)')}
+          </div>
+        </div>
+
+        <div class="btn-state-panel" data-panel="focus">
+          <div class="ts-controls-row cols-3">
+            ${colorRow('focus_ring_color', 'Cor do anel de foco', '#005fcc')}
+            ${textRow('focus_ring_width',  'Largura do anel', '2px')}
+            ${textRow('focus_ring_offset', 'Offset do anel', '2px')}
+          </div>
+        </div>
+
+        <div class="btn-state-panel" data-panel="disabled">
+          <div class="ts-controls-row cols-2">
+            ${textRow('disabled_opacity', 'Opacidade (desativado)', '0.4')}
+            ${selectRow('disabled_cursor', 'Cursor (desativado)', ['not-allowed','default','auto'], local.disabled_cursor||'not-allowed')}
+          </div>
+        </div>
+
+        <div class="btn-state-panel" data-panel="responsive">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted)">Tablet (max 1024px)</div>
+          <div class="ts-controls-row cols-3">
+            ${textRow('tablet_padding_x', 'Padding X', 'herda padrão')}
+            ${textRow('tablet_padding_y', 'Padding Y', 'herda padrão')}
+            ${textRow('tablet_font_size', 'Font Size', 'herda padrão')}
+          </div>
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted);margin-top:8px">Mobile (max 640px)</div>
+          <div class="ts-controls-row cols-3">
+            ${textRow('mobile_padding_x', 'Padding X', 'herda padrão')}
+            ${textRow('mobile_padding_y', 'Padding Y', 'herda padrão')}
+            ${textRow('mobile_font_size', 'Font Size', 'herda padrão')}
+          </div>
+        </div>
+
+      </div>
+
+      <div class="ts-card-footer">
+        <span class="ts-dirty-msg">Alterações não salvas</span>
+        <button class="btn btn-primary btn-sm ts-save-btn">Salvar</button>
+      </div>
+
+    </div>
+  `;
+
+  // ── Header toggle ──────────────────────────────────────────
+  card.querySelector('.ts-card-header').addEventListener('click', () => card.classList.toggle('open'));
+
+  // ── State tab switching ────────────────────────────────────
+  card.querySelectorAll('.btn-state-tab').forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.stopPropagation();
+      currentState = tab.dataset.state;
+      card.querySelectorAll('.btn-state-tab').forEach(t => t.classList.toggle('active', t === tab));
+      card.querySelectorAll('.btn-state-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === currentState));
+      updatePreviews();
+    });
+  });
+
+  // ── Color swatch ↔ text input sync ────────────────────────
+  card.querySelectorAll('.ts-color-swatch').forEach(swatch => {
+    const field = swatch.dataset.field;
+    const textInput = card.querySelector(`.ts-color-text[data-field="${field}"]`);
+    swatch.addEventListener('input', () => {
+      if (textInput) textInput.value = swatch.value;
+      local[field] = swatch.value;
+      markDirty();
+    });
+  });
+
+  card.querySelectorAll('.ts-color-text').forEach(textInput => {
+    const field = textInput.dataset.field;
+    const swatch = card.querySelector(`.ts-color-swatch[data-field="${field}"]`);
+    textInput.addEventListener('input', () => {
+      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value) && swatch) swatch.value = textInput.value;
+      local[field] = textInput.value;
+      markDirty();
+    });
+  });
+
+  // ── All other data-field inputs ────────────────────────────
+  card.querySelectorAll('[data-field]').forEach(el => {
+    if (el.classList.contains('ts-color-swatch') || el.classList.contains('ts-color-text')) return;
+    const handler = () => { local[el.dataset.field] = el.value; markDirty(); };
+    el.addEventListener('input', handler);
+    el.addEventListener('change', handler);
+  });
+
+  // ── Preview helpers ────────────────────────────────────────
+  function updatePreviews() {
+    const style = buildPreviewStyle(currentState);
+    card.querySelectorAll('.ts-btn-preview-area button').forEach((btn, i) => {
+      btn.style.cssText = style;
+      btn.innerHTML = buildButtonContent(i === 1);
+    });
+  }
+
+  function markDirty() {
+    card.classList.add('dirty');
+    updatePreviews();
+  }
+
+  // ── Save ───────────────────────────────────────────────────
+  card.querySelector('.ts-save-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    saveButton(btn.id, local, btn, card);
+  });
+
+  return card;
+}
+
+async function saveButton(id, local, btnRef, card) {
+  const saveBtn = card.querySelector('.ts-save-btn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Salvando…';
+  try {
+    const client = await getClient();
+    const { error } = await client.from('button_tokens').update({
+      bg_color: local.bg_color, text_color: local.text_color,
+      border_color: local.border_color, border_width: local.border_width,
+      border_radius: local.border_radius, padding_x: local.padding_x, padding_y: local.padding_y,
+      icon_position: local.icon_position, icon_size: local.icon_size, icon_gap: local.icon_gap,
+      type_style_name: local.type_style_name || '', font_weight: local.font_weight, font_size: local.font_size,
+      hover_bg_color: local.hover_bg_color, hover_text_color: local.hover_text_color,
+      hover_border_color: local.hover_border_color, hover_transform: local.hover_transform, hover_opacity: local.hover_opacity,
+      active_bg_color: local.active_bg_color, active_text_color: local.active_text_color,
+      active_border_color: local.active_border_color, active_transform: local.active_transform,
+      focus_ring_color: local.focus_ring_color, focus_ring_width: local.focus_ring_width, focus_ring_offset: local.focus_ring_offset,
+      disabled_opacity: local.disabled_opacity, disabled_cursor: local.disabled_cursor,
+      tablet_padding_x: local.tablet_padding_x, tablet_padding_y: local.tablet_padding_y, tablet_font_size: local.tablet_font_size,
+      mobile_padding_x: local.mobile_padding_x, mobile_padding_y: local.mobile_padding_y, mobile_font_size: local.mobile_font_size,
+      updated_at: new Date().toISOString(),
+    }).eq('id', id);
+    if (error) throw error;
+    Object.assign(btnRef, local);
+    card.classList.remove('dirty');
+    saveBtn.textContent = 'Salvo ✓';
+    invalidateButtonCache();
+    toast('Botão salvo!', 'success');
+    setTimeout(() => { saveBtn.textContent = 'Salvar'; saveBtn.disabled = false; }, 2000);
+  } catch (e) {
+    saveBtn.textContent = 'Salvar';
+    saveBtn.disabled = false;
+    toast('Erro: ' + e.message, 'error');
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
