@@ -1234,30 +1234,53 @@
 
     /* ── Global Buttons Panel ───────────────────────────────── */
     .ts-color-ctrl { display: flex; align-items: center; gap: 6px; }
-    .ts-color-swatch { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; padding: 0; background: transparent; }
     .ts-color-text { flex: 1; min-width: 0; }
-    /* Sizes grid */
-    .btn-sizes-grid { display: flex; flex-direction: column; gap: 2px; }
-    .btn-sizes-header-row,
-    .btn-size-row { display: grid; grid-template-columns: 90px repeat(6, 1fr); gap: 8px; align-items: center; padding: 6px 0; }
-    .btn-sizes-header-row { padding-bottom: 4px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
-    .btn-size-col-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
-    .btn-size-name { font-size: 0.78rem; font-weight: 600; }
+    /* Color swatch trigger button */
+    .cpk-swatch-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; flex-shrink: 0; padding: 0; position: relative; background: repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0 0/8px 8px; transition: transform 0.12s, border-color 0.12s; }
+    .cpk-swatch-btn:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.35); }
+    .cpk-swatch-btn::after { content: ''; position: absolute; inset: 0; border-radius: 5px; background: var(--swatch-clr, transparent); }
+    /* Color picker panel */
+    .cpk-panel { position: fixed; z-index: 99999; background: #1c1c1f; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 12px; width: 216px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); display: none; flex-direction: column; gap: 8px; user-select: none; }
+    .cpk-panel.open { display: flex; }
+    .cpk-canvas-wrap { position: relative; border-radius: 6px; overflow: hidden; flex-shrink: 0; }
+    .cpk-canvas { width: 192px; height: 110px; display: block; cursor: crosshair; }
+    .cpk-cursor { position: absolute; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 0 1px rgba(0,0,0,0.6); transform: translate(-50%,-50%); pointer-events: none; }
+    .cpk-hue-wrap { position: relative; flex-shrink: 0; }
+    .cpk-hue-bar { width: 100%; height: 14px; border-radius: 7px; display: block; cursor: pointer; }
+    .cpk-hue-thumb { position: absolute; top: 0; width: 14px; height: 14px; border-radius: 50%; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.6); transform: translateX(-50%); pointer-events: none; }
+    .cpk-bottom { display: flex; gap: 6px; align-items: center; }
+    .cpk-preview { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.12); background: repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0 0/8px 8px; position: relative; overflow: hidden; }
+    .cpk-preview-fill { position: absolute; inset: 0; }
+    .cpk-hex-input { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 6px; padding: 6px 8px; color: #F5F7FA; font-size: 0.78rem; font-family: monospace; outline: none; }
+    .cpk-hex-input:focus { border-color: rgba(255,255,255,0.3); }
+    .cpk-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+    .cpk-preset { width: 20px; height: 20px; border-radius: 5px; cursor: pointer; border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; padding: 0; transition: transform 0.1s; }
+    .cpk-preset:hover { transform: scale(1.2); }
+    .cpk-transp-preset { background: repeating-conic-gradient(#888 0% 25%, #555 0% 50%) 0 0/6px 6px !important; }
+    /* Sizes visual grid */
+    .bsz-grid { display: flex; flex-direction: column; }
+    .bsz-header,
+    .bsz-row { display: grid; grid-template-columns: 88px repeat(6, 1fr); gap: 5px; align-items: center; }
+    .bsz-header { padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .bsz-row { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .bsz-row:last-child { border-bottom: none; }
+    .bsz-icon-hd { display: flex; align-items: center; justify-content: center; color: var(--fg-muted); opacity: 0.6; }
+    .bsz-label { font-size: 0.72rem; font-weight: 600; color: var(--fg-muted); }
+    .bsz-field { display: flex; align-items: center; gap: 3px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 5px; padding: 0 5px; height: 28px; }
+    .bsz-field:focus-within { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.08); }
+    .bsz-field-icon { flex-shrink: 0; opacity: 0.45; display: flex; align-items: center; }
+    .bsz-input { background: none; border: none; outline: none; color: var(--fg); font-size: 0.75rem; font-family: inherit; width: 100%; min-width: 0; }
     /* Variant tabs */
     .btn-variant-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
     .btn-variant-tab { padding: 5px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--fg-muted); font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.15s; font-family: inherit; }
     .btn-variant-tab:hover { background: var(--surface2); color: var(--fg); }
     .btn-variant-tab.active { background: color-mix(in srgb,var(--accent) 15%,transparent); border-color: color-mix(in srgb,var(--accent) 40%,transparent); color: var(--fg); }
-    /* Variant panels */
     .btn-variant-panel { display: none; flex-direction: column; gap: 8px; }
     .btn-variant-panel.active { display: flex; }
-    /* State tabs inside style card (reuses .ts-bp-btn sizing) */
     .btn-style-state-tabs { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 4px; }
     .btn-style-state-panel { display: none; }
     .btn-style-state-panel.active { display: flex; flex-direction: column; gap: 16px; }
-    /* Color dot */
     .btn-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.1); }
-    /* Mini preview button */
     .btn-preview-mini { pointer-events: none; user-select: none; border-style: solid; display: inline-flex; align-items: center; font-family: inherit; line-height: 1; white-space: nowrap; cursor: default; }
 
     /* ── Global Colors Panel ────────────────────────────────── */
@@ -3603,6 +3626,151 @@ function renderSiteContent(items) {
 }
 
 // ══════════════════════════════════════════════════════════════
+//  COLOR PICKER SINGLETON
+// ══════════════════════════════════════════════════════════════
+(function initColorPicker() {
+  function hexToHsv(hex) {
+    if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return [0, 0, 1];
+    const r = parseInt(hex.slice(1,3),16)/255, g = parseInt(hex.slice(3,5),16)/255, b = parseInt(hex.slice(5,7),16)/255;
+    const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max-min;
+    let h = 0, s = max===0?0:d/max, v = max;
+    if (d) { if(max===r) h=((g-b)/d+(g<b?6:0))/6; else if(max===g) h=((b-r)/d+2)/6; else h=((r-g)/d+4)/6; }
+    return [h*360, s, v];
+  }
+  function hsvToHex(h,s,v) {
+    h=h/360; const i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+    let r,g,b;
+    switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;default:r=v;g=p;b=q;}
+    return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+  }
+
+  const panel = document.createElement('div');
+  panel.id = 'cpkPanel'; panel.className = 'cpk-panel';
+  panel.innerHTML = `
+    <div class="cpk-canvas-wrap">
+      <canvas id="cpkCanvas" class="cpk-canvas" width="192" height="110"></canvas>
+      <div id="cpkCursor" class="cpk-cursor"></div>
+    </div>
+    <div class="cpk-hue-wrap">
+      <canvas id="cpkHueBar" class="cpk-hue-bar" width="192" height="14"></canvas>
+      <div id="cpkHueThumb" class="cpk-hue-thumb"></div>
+    </div>
+    <div class="cpk-bottom">
+      <div class="cpk-preview"><div id="cpkPreviewFill" class="cpk-preview-fill"></div></div>
+      <input id="cpkHexInput" class="cpk-hex-input" type="text" maxlength="20" spellcheck="false" placeholder="#rrggbb" />
+    </div>
+    <div class="cpk-presets" id="cpkPresets"></div>`;
+  document.body.appendChild(panel);
+
+  const cvs = document.getElementById('cpkCanvas');
+  const hueBar = document.getElementById('cpkHueBar');
+  const cursor = document.getElementById('cpkCursor');
+  const hueThumb = document.getElementById('cpkHueThumb');
+  const previewFill = document.getElementById('cpkPreviewFill');
+  const hexInp = document.getElementById('cpkHexInput');
+
+  let H=0, S=1, V=1, svX=1, svY=0, onCb=null, triggerEl=null;
+
+  function drawSV() {
+    const ctx=cvs.getContext('2d'), w=cvs.width, h=cvs.height;
+    const gH=ctx.createLinearGradient(0,0,w,0);
+    gH.addColorStop(0,'#fff'); gH.addColorStop(1,`hsl(${H},100%,50%)`);
+    ctx.fillStyle=gH; ctx.fillRect(0,0,w,h);
+    const gV=ctx.createLinearGradient(0,0,0,h);
+    gV.addColorStop(0,'transparent'); gV.addColorStop(1,'#000');
+    ctx.fillStyle=gV; ctx.fillRect(0,0,w,h);
+    cursor.style.left=(svX*w)+'px'; cursor.style.top=(svY*h)+'px';
+  }
+  function drawHue() {
+    const ctx=hueBar.getContext('2d'), w=hueBar.width, h=hueBar.height;
+    const g=ctx.createLinearGradient(0,0,w,0);
+    for(let i=0;i<=6;i++) g.addColorStop(i/6,`hsl(${i*60},100%,50%)`);
+    ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+    hueThumb.style.left=(H/360*100)+'%';
+  }
+  function sync(hex, notify) {
+    previewFill.style.background = hex==='transparent'?'transparent':hex;
+    hexInp.value = hex;
+    if(notify && onCb) onCb(hex);
+  }
+  function fromHSV(notify) {
+    const hex=hsvToHex(H,S,V);
+    drawSV(); drawHue(); sync(hex, notify);
+  }
+
+  // SV pick
+  function pickSV(e) {
+    const r=cvs.getBoundingClientRect();
+    svX=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    svY=Math.max(0,Math.min(1,(e.clientY-r.top)/r.height));
+    S=svX; V=1-svY; fromHSV(true);
+  }
+  cvs.addEventListener('mousedown', e=>{
+    pickSV(e);
+    const move=ev=>pickSV(ev), up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+  });
+
+  // Hue pick
+  function pickHue(e) {
+    const r=hueBar.getBoundingClientRect();
+    H=Math.max(0,Math.min(360,((e.clientX-r.left)/r.width)*360));
+    fromHSV(true);
+  }
+  hueBar.addEventListener('mousedown', e=>{
+    pickHue(e);
+    const move=ev=>pickHue(ev), up=()=>{ document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
+  });
+
+  // Hex input
+  hexInp.addEventListener('input', ()=>{
+    const v=hexInp.value.trim();
+    if(v==='transparent'){ previewFill.style.background='transparent'; if(onCb) onCb('transparent'); return; }
+    if(/^#[0-9a-fA-F]{6}$/.test(v)){
+      [H,S,V]=hexToHsv(v); svX=S; svY=1-V; fromHSV(false);
+      previewFill.style.background=v; if(onCb) onCb(v);
+    }
+  });
+  hexInp.addEventListener('keydown', e=>{ if(e.key==='Enter') close(); });
+
+  // Presets
+  const PRESETS=['transparent','#FE4311','#6366f1','#22c55e','#ef4444','#f59e0b','#3b82f6','#ffffff','#f4f4f5','#71717a','#52525b','#09090b'];
+  const presetsEl=document.getElementById('cpkPresets');
+  presetsEl.innerHTML=PRESETS.map(c=>`<button class="cpk-preset${c==='transparent'?' cpk-transp-preset':''}" style="${c!=='transparent'?'background:'+c:''}" data-color="${c}" title="${c}"></button>`).join('');
+  presetsEl.querySelectorAll('.cpk-preset').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const c=btn.dataset.color;
+      hexInp.value=c; previewFill.style.background=c==='transparent'?'transparent':c;
+      if(c!=='transparent'&&/^#[0-9a-fA-F]{6}$/.test(c)){ [H,S,V]=hexToHsv(c); svX=S; svY=1-V; drawSV(); drawHue(); }
+      if(onCb) onCb(c);
+    });
+  });
+
+  function open(trigger, currentVal, onChange) {
+    triggerEl=trigger; onCb=onChange;
+    const v=currentVal||'transparent';
+    if(v!=='transparent'&&/^#[0-9a-fA-F]{6}$/.test(v)){ [H,S,V]=hexToHsv(v); svX=S; svY=1-V; }
+    drawSV(); drawHue(); sync(v, false);
+    panel.classList.add('open');
+    const r=trigger.getBoundingClientRect();
+    let left=r.left, top=r.bottom+6;
+    if(left+224>window.innerWidth) left=window.innerWidth-228;
+    if(top+340>window.innerHeight) top=r.top-340;
+    panel.style.left=left+'px'; panel.style.top=top+'px';
+    requestAnimationFrame(()=>hexInp.focus());
+  }
+  function close() { panel.classList.remove('open'); triggerEl=null; onCb=null; }
+
+  document.addEventListener('mousedown', e=>{
+    if(panel.classList.contains('open')&&!panel.contains(e.target)&&e.target!==triggerEl&&!triggerEl?.contains(e.target)) close();
+  });
+
+  window.colorPicker={ open, close };
+  drawHue();
+})();
+
+// ══════════════════════════════════════════════════════════════
 //  GLOBAL BUTTONS
 // ══════════════════════════════════════════════════════════════
 let btnSizesData  = [];
@@ -3654,32 +3822,51 @@ async function loadButtons() {
 }
 
 // ── Sizes ──────────────────────────────────────────────────────
+const SIZE_ICON_FIELDS = [
+  { key:'padding_x',     title:'Padding X (horizontal)',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="1" y1="8" x2="15" y2="8"/><line x1="1" y1="5" x2="1" y2="11"/><line x1="15" y1="5" x2="15" y2="11"/></svg>' },
+  { key:'padding_y',     title:'Padding Y (vertical)',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="1" x2="8" y2="15"/><line x1="5" y1="1" x2="11" y2="1"/><line x1="5" y1="15" x2="11" y2="15"/></svg>' },
+  { key:'font_size',     title:'Font size',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13L7 3l5 10"/><line x1="3.8" y1="9" x2="10.2" y2="9"/></svg>' },
+  { key:'border_radius', title:'Border radius',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9V6a4 4 0 014-4h3"/></svg>' },
+  { key:'icon_gap',      title:'Gap ícone/texto',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="1" y1="8" x2="5" y2="8"/><line x1="11" y1="8" x2="15" y2="8"/><line x1="7" y1="4" x2="7" y2="12"/><line x1="9" y1="4" x2="9" y2="12"/></svg>' },
+  { key:'icon_size',     title:'Tamanho do ícone',
+    svg:'<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="8" height="8" rx="1"/></svg>' },
+];
+
 function renderButtonSizes() {
   const grid = document.getElementById('btnSizesGrid');
   if (!grid) return;
   const localSizes = btnSizesData.map(s => ({ ...s }));
-  let dirty = false;
 
   function markSizesDirty() {
-    dirty = true;
     document.getElementById('sizesDirtyMsg').style.display = 'inline';
   }
 
-  let html = `<div class="btn-sizes-header-row">
-    ${SIZE_HEADERS.map(h => `<span class="btn-size-col-label">${h}</span>`).join('')}
-  </div>`;
+  let html = `<div class="bsz-grid">
+    <div class="bsz-header">
+      <span></span>
+      ${SIZE_ICON_FIELDS.map(f => `<div class="bsz-icon-hd" title="${f.title}">${f.svg}</div>`).join('')}
+    </div>`;
   localSizes.forEach((sz, i) => {
-    html += `<div class="btn-size-row" data-idx="${i}">
-      <span class="btn-size-name">${esc(sz.label)}</span>
-      ${SIZE_FIELDS.map(f => `<input class="field" style="padding:5px 8px;font-size:0.78rem" data-size-idx="${i}" data-field="${f}" value="${esc(sz[f]||'')}" placeholder="${f}">`).join('')}
+    html += `<div class="bsz-row">
+      <span class="bsz-label">${esc(sz.label)}</span>
+      ${SIZE_ICON_FIELDS.map(f => `
+        <div class="bsz-field" title="${f.title}">
+          <span class="bsz-field-icon">${f.svg}</span>
+          <input class="bsz-input" data-size-idx="${i}" data-field="${f.key}" value="${esc(sz[f.key]||'')}" />
+        </div>`).join('')}
     </div>`;
   });
+  html += '</div>';
   grid.innerHTML = html;
 
   grid.querySelectorAll('[data-size-idx]').forEach(inp => {
     inp.addEventListener('input', () => {
-      const idx = parseInt(inp.dataset.sizeIdx);
-      localSizes[idx][inp.dataset.field] = inp.value;
+      localSizes[parseInt(inp.dataset.sizeIdx)][inp.dataset.field] = inp.value;
       markSizesDirty();
     });
   });
@@ -3764,12 +3951,13 @@ function buildButtonStyleCard(style, isOpen = false) {
 
   function colorRow(field, label, fallback) {
     const val = local[field] || '';
-    const swatchVal = /^#[0-9a-fA-F]{3,6}$/.test(val) ? val : (fallback || '#000000');
+    const isHex = /^#[0-9a-fA-F]{6}$/.test(val);
+    const swatchClr = isHex ? val : '';
     return `<div class="ts-ctrl">
       <span class="ts-ctrl-label">${label}</span>
       <div class="ts-color-ctrl">
-        <input type="color" class="ts-color-swatch" data-field="${field}" value="${swatchVal}">
-        <input type="text" class="field ts-color-text" data-field="${field}" value="${esc(val)}" placeholder="${fallback||'herda padrão'}">
+        <button class="cpk-swatch-btn" data-field="${field}" style="--swatch-clr:${swatchClr}" title="Escolher cor"></button>
+        <input type="text" class="field ts-color-text" data-field="${field}" value="${esc(val)}" placeholder="${fallback||'transparent'}">
       </div>
     </div>`;
   }
@@ -3850,29 +4038,36 @@ function buildButtonStyleCard(style, isOpen = false) {
     });
   });
 
-  // color swatch ↔ text sync
-  card.querySelectorAll('.ts-color-swatch').forEach(swatch => {
-    const field = swatch.dataset.field;
-    const textInput = card.querySelector(`.ts-color-text[data-field="${field}"]`);
-    swatch.addEventListener('input', () => {
-      if (textInput) textInput.value = swatch.value;
-      local[field] = swatch.value;
-      markDirtyStyle();
+  // color picker swatch open
+  card.querySelectorAll('.cpk-swatch-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const field = btn.dataset.field;
+      const textInput = card.querySelector(`.ts-color-text[data-field="${field}"]`);
+      window.colorPicker.open(btn, local[field] || '', hex => {
+        if (textInput) textInput.value = hex;
+        btn.style.setProperty('--swatch-clr', /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '');
+        local[field] = hex;
+        markDirtyStyle();
+      });
     });
   });
+
+  // text input → sync swatch + local
   card.querySelectorAll('.ts-color-text').forEach(textInput => {
     const field = textInput.dataset.field;
-    const swatch = card.querySelector(`.ts-color-swatch[data-field="${field}"]`);
+    const btn = card.querySelector(`.cpk-swatch-btn[data-field="${field}"]`);
     textInput.addEventListener('input', () => {
-      if (/^#[0-9a-fA-F]{6}$/.test(textInput.value) && swatch) swatch.value = textInput.value;
-      local[field] = textInput.value;
+      const v = textInput.value.trim();
+      if (btn) btn.style.setProperty('--swatch-clr', /^#[0-9a-fA-F]{6}$/.test(v) ? v : '');
+      local[field] = v;
       markDirtyStyle();
     });
   });
 
   // other data-field inputs
   card.querySelectorAll('[data-field]').forEach(el => {
-    if (el.classList.contains('ts-color-swatch') || el.classList.contains('ts-color-text')) return;
+    if (el.classList.contains('cpk-swatch-btn') || el.classList.contains('ts-color-text')) return;
     el.addEventListener('input', () => { local[el.dataset.field] = el.value; markDirtyStyle(); });
   });
 
