@@ -142,47 +142,141 @@
     /* ═══════════════════════════════════════════════ */
     /*  MAIN APP                                       */
     /* ═══════════════════════════════════════════════ */
-    #app { display: none; min-height: 100vh; flex-direction: column; }
+    #app { display: none; flex-direction: row; height: 100vh; overflow: hidden; }
 
-    /* ── TOPBAR ────────────────────────────────────── */
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 50;
+    /* ── SIDEBAR ───────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+    }
+
+    .sidebar-header {
+      padding: 1.25rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+    .sidebar-brand { font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-group { margin-bottom: 0.25rem; }
+
+    .nav-group-label {
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--fg-muted);
+      padding: 0.875rem 0.75rem 0.25rem;
+      display: block;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--fg-muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      position: relative;
+      font-family: inherit;
+    }
+
+    .nav-item:hover { background: var(--surface2); color: var(--fg); }
+
+    .nav-item.active {
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      color: var(--fg);
+      font-weight: 500;
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .sidebar-footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── MAIN AREA ─────────────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+
+    .main-header {
       height: 56px;
+      padding: 0 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 1.5rem;
-      background: var(--bg);
       border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
       gap: 1rem;
     }
 
-    .topbar-left { display: flex; align-items: center; gap: 10px; }
-    .topbar-logo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-    .topbar-title { font-weight: 600; font-size: 0.9rem; }
-    .topbar-badge {
-      font-size: 0.7rem;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--fg-muted);
-      padding: 2px 8px;
-      border-radius: 99px;
-    }
+    .main-title { font-size: 1rem; font-weight: 600; letter-spacing: -0.01em; }
 
-    .topbar-right { display: flex; align-items: center; gap: 8px; }
-
-    /* ── CONTENT ───────────────────────────────────── */
-    .content {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
-      width: 100%;
+    .main-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
     }
+
+    /* ── PANELS ────────────────────────────────────── */
+    .panel { display: none; flex-direction: column; gap: 1.5rem; }
+    .panel.active { display: flex; }
+
+    .section-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 5rem 2rem;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--fg-muted);
+    }
+
+    .section-placeholder h3 { font-size: 1rem; font-weight: 500; color: var(--fg); }
 
     /* ── SETUP NOTICE ──────────────────────────────── */
     .notice {
@@ -997,128 +1091,167 @@
 <!-- ═══════════════════════════════════════════════════════ -->
 <div id="app">
 
-  <!-- Topbar -->
-  <div class="topbar">
-    <div class="topbar-left">
-      <img src="./logo.png" alt="Logo" class="topbar-logo" />
-      <span class="topbar-title">Admin</span>
-      <span class="topbar-badge">Portfolio</span>
+  <!-- ── SIDEBAR ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <img src="./logo.png" alt="Logo" class="sidebar-logo" />
+      <span class="sidebar-brand">Admin</span>
     </div>
-    <div class="topbar-right">
-      <a href="/" target="_blank" class="btn btn-ghost btn-sm">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        View site
+
+    <nav class="sidebar-nav">
+      <div class="nav-group">
+        <span class="nav-group-label">Conteúdos do site</span>
+        <button class="nav-item active" data-section="carousel">Carousel</button>
+        <button class="nav-item" data-section="projects">Projetos</button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group-label">Design System</span>
+        <button class="nav-item" data-section="typography">Tipografia global</button>
+        <button class="nav-item" data-section="fonts">Fontes</button>
+      </div>
+      <div class="nav-group">
+        <span class="nav-group-label">Configurações</span>
+        <button class="nav-item" data-section="settings">Configurações gerais</button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="./index.html" target="_blank" class="btn btn-ghost btn-sm">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ver site
       </a>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ─────────────────────────────────────────────── -->
+  <div class="main">
+    <div class="main-header">
+      <h1 class="main-title" id="mainTitle">Carousel</h1>
+    </div>
+
+    <div class="main-body">
+
+      <!-- Panel: Carousel ─────────────────────────────────── -->
+      <div class="panel active" data-panel="carousel">
+
+        <div class="notice" id="setupNotice">
+          <div class="notice-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div>
+            <strong>First-time setup:</strong> To enable image uploads, go to your
+            <strong>Supabase dashboard → Storage</strong> and create a public bucket named
+            <strong>project-images</strong>. Also run the SQL from <code>supabase-schema.sql</code> in the SQL editor.
+            <button onclick="document.getElementById('setupNotice').remove()" style="background:none;border:none;color:var(--fg-muted);margin-left:8px;cursor:pointer;font-size:12px;">Dismiss</button>
+          </div>
+        </div>
+
+        <div class="section-top">
+          <h2>
+            Carousel
+            <span class="count-badge" id="carouselCountBadge">0</span>
+          </h2>
+          <span style="font-size:0.8rem;color:var(--fg-muted)">Arraste para reordenar · Clique para ocultar</span>
+        </div>
+
+        <div class="carousel-grid" id="carouselGrid">
+          <div class="loading-row" style="grid-column:1/-1">
+            <div class="spinner"></div>
+            Loading…
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Projetos ─────────────────────────────────── -->
+      <div class="panel" data-panel="projects">
+
+        <div class="section-top">
+          <h2>
+            Projetos
+            <span class="count-badge" id="countBadge">0</span>
+          </h2>
+          <button class="btn btn-primary btn-sm" id="newProjectBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Novo projeto
+          </button>
+        </div>
+
+        <div id="projectList">
+          <div class="loading-row">
+            <div class="spinner"></div>
+            Loading projects…
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Tipografia ───────────────────────────────── -->
+      <div class="panel" data-panel="typography">
+
+        <div class="section-top">
+          <h2>
+            Tipografia global
+            <span class="count-badge" id="typoCountBadge">0</span>
+          </h2>
+          <button class="btn btn-ghost btn-sm" id="resetTypoBtn" title="Restore seed defaults">Restaurar padrões</button>
+        </div>
+
+        <div class="typo-header">
+          <span>Seletor</span>
+          <span>Fonte</span>
+          <span>Peso</span>
+          <span>Tamanho</span>
+          <span class="letter-cell">Espaçamento</span>
+          <span class="line-cell">Altura linha</span>
+          <span></span>
+        </div>
+
+        <div class="typo-table" id="typoTable">
+          <div class="loading-row">
+            <div class="spinner"></div>
+            Loading tokens…
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Fontes ───────────────────────────────────── -->
+      <div class="panel" data-panel="fonts">
+
+        <div class="section-top">
+          <h2>
+            Fontes
+            <span class="count-badge" id="fontsCountBadge">0</span>
+          </h2>
+          <button class="btn btn-primary btn-sm" id="newFontBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Fazer upload
+          </button>
+        </div>
+
+        <div class="fonts-list" id="fontsList">
+          <div class="loading-row">
+            <div class="spinner"></div>
+            Loading fonts…
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Panel: Configurações ────────────────────────────── -->
+      <div class="panel" data-panel="settings">
+        <div class="section-placeholder">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.3"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <h3>Configurações gerais</h3>
+          <p>Em breve: senha de acesso, domínio, SEO e outras configurações do site.</p>
+        </div>
+      </div>
+
     </div>
   </div>
 
-  <!-- Content -->
-  <div class="content">
-
-    <!-- Setup notice -->
-    <div class="notice" id="setupNotice">
-      <div class="notice-icon">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      </div>
-      <div>
-        <strong>First-time setup:</strong> To enable image uploads, go to your
-        <strong>Supabase dashboard → Storage</strong> and create a public bucket named
-        <strong>project-images</strong>. Also run the SQL from <code>supabase-schema.sql</code> in the SQL editor.
-        <button onclick="document.getElementById('setupNotice').remove()" style="background:none;border:none;color:var(--fg-muted);margin-left:8px;cursor:pointer;font-size:12px;">Dismiss</button>
-      </div>
-    </div>
-
-    <!-- Projects section -->
-    <div class="section-top">
-      <h2>
-        Projects
-        <span class="count-badge" id="countBadge">0</span>
-      </h2>
-      <button class="btn btn-primary btn-sm" id="newProjectBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New project
-      </button>
-    </div>
-
-    <div id="projectList">
-      <div class="loading-row">
-        <div class="spinner"></div>
-        Loading projects…
-      </div>
-    </div>
-
-    <!-- Divider -->
-    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
-
-    <!-- Carousel section -->
-    <div class="section-top">
-      <h2>
-        Carousel Images
-        <span class="count-badge" id="carouselCountBadge">0</span>
-      </h2>
-      <span style="font-size:0.8rem;color:var(--fg-muted)">Drag to reorder · Click to toggle visibility</span>
-    </div>
-
-    <div class="carousel-grid" id="carouselGrid">
-      <div class="loading-row" style="grid-column:1/-1">
-        <div class="spinner"></div>
-        Loading…
-      </div>
-    </div>
-
-    <!-- Divider -->
-    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
-
-    <!-- Typography section -->
-    <div class="section-top">
-      <h2>
-        Typography
-        <span class="count-badge" id="typoCountBadge">0</span>
-      </h2>
-      <button class="btn btn-ghost btn-sm" id="resetTypoBtn" title="Restore seed defaults">Reset defaults</button>
-    </div>
-
-    <div class="typo-header">
-      <span>Selector</span>
-      <span>Font role</span>
-      <span>Weight</span>
-      <span>Size</span>
-      <span class="letter-cell">Letter spacing</span>
-      <span class="line-cell">Line height</span>
-      <span></span>
-    </div>
-
-    <div class="typo-table" id="typoTable">
-      <div class="loading-row">
-        <div class="spinner"></div>
-        Loading tokens…
-      </div>
-    </div>
-
-    <!-- Divider -->
-    <div style="height:1px;background:var(--border);margin:0.5rem 0"></div>
-
-    <!-- Fonts section -->
-    <div class="section-top">
-      <h2>
-        Fonts
-        <span class="count-badge" id="fontsCountBadge">0</span>
-      </h2>
-      <button class="btn btn-primary btn-sm" id="newFontBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Upload font
-      </button>
-    </div>
-
-    <div class="fonts-list" id="fontsList">
-      <div class="loading-row">
-        <div class="spinner"></div>
-        Loading fonts…
-      </div>
-    </div>
-
-  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -1380,10 +1513,34 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   location.reload();
 });
 
+const SECTION_TITLES = {
+  carousel:   'Carousel',
+  projects:   'Projetos',
+  typography: 'Tipografia global',
+  fonts:      'Fontes',
+  settings:   'Configurações gerais',
+};
+
+function switchSection(id) {
+  document.querySelectorAll('.nav-item[data-section]').forEach(el => {
+    el.classList.toggle('active', el.dataset.section === id);
+  });
+  document.querySelectorAll('.panel[data-panel]').forEach(el => {
+    el.classList.toggle('active', el.dataset.panel === id);
+  });
+  const titleEl = document.getElementById('mainTitle');
+  if (titleEl) titleEl.textContent = SECTION_TITLES[id] || id;
+}
+
+document.querySelectorAll('.nav-item[data-section]').forEach(btn => {
+  btn.addEventListener('click', () => switchSection(btn.dataset.section));
+});
+
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   const app = document.getElementById('app');
   app.style.display = 'flex';
+  switchSection('carousel');
   loadProjects();
   loadCarouselImages();
   loadTypography();
