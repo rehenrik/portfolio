@@ -372,6 +372,20 @@ async function getColorsData() {
 // ── Global Buttons CSS ───────────────────────────────────────
 const BUTTON_CACHE_KEY = 'button_css_v1';
 
+function buttonColorValue(value, fallback) {
+  if (!value) return fallback || '';
+  const clean = String(value).trim();
+  if (!clean || clean === 'transparent') return clean || (fallback || '');
+  if (/^var\(--[^)]+\)$/.test(clean)) return clean;
+  if (/^[a-z0-9]+-(50|100|200|300|400|500|600|700|800|900|950)$/i.test(clean)) {
+    return `var(--${clean})`;
+  }
+  if (/^[a-z0-9]+\/(50|100|200|300|400|500|600|700|800|900|950)$/i.test(clean)) {
+    return `var(--${clean.replace('/', '-')})`;
+  }
+  return clean;
+}
+
 function buildButtonsCSS(sizes, styles) {
   let css = '.btn{display:inline-flex;align-items:center;justify-content:center;border-style:solid;font-family:inherit;cursor:pointer;transition:all 0.15s;text-decoration:none;line-height:1;white-space:nowrap;}';
   for (const s of (sizes || [])) {
@@ -381,25 +395,29 @@ function buildButtonsCSS(sizes, styles) {
   for (const b of (styles || [])) {
     if (!b.variant || !b.color) continue;
     const cls = `.btn-${b.variant}.btn-${b.color}`;
-    css += `\n${cls}{background:${b.bg_color||'transparent'};color:${b.text_color||'#000'};border-color:${b.border_color||'transparent'};border-width:${b.border_width||'0px'};}`;
+    css += `\n${cls}{background:${buttonColorValue(b.bg_color,'transparent')};color:${buttonColorValue(b.text_color,'#000')};border-color:${buttonColorValue(b.border_color,'transparent')};border-width:${b.border_width||'0px'};}`;
     const hHas = b.hover_bg_color || b.hover_text_color || b.hover_border_color || b.hover_opacity;
     if (hHas) {
       css += `\n${cls}:hover{`;
-      if (b.hover_bg_color)     css += `background:${b.hover_bg_color};`;
-      if (b.hover_text_color)   css += `color:${b.hover_text_color};`;
-      if (b.hover_border_color) css += `border-color:${b.hover_border_color};`;
+      if (b.hover_bg_color)     css += `background:${buttonColorValue(b.hover_bg_color)};`;
+      if (b.hover_text_color)   css += `color:${buttonColorValue(b.hover_text_color)};`;
+      if (b.hover_border_color) css += `border-color:${buttonColorValue(b.hover_border_color)};`;
       if (b.hover_opacity)      css += `opacity:${b.hover_opacity};`;
       css += `}`;
     }
     const aHas = b.active_bg_color || b.active_text_color || b.active_border_color;
     if (aHas) {
       css += `\n${cls}:active{`;
-      if (b.active_bg_color)     css += `background:${b.active_bg_color};`;
-      if (b.active_text_color)   css += `color:${b.active_text_color};`;
-      if (b.active_border_color) css += `border-color:${b.active_border_color};`;
+      if (b.active_bg_color)     css += `background:${buttonColorValue(b.active_bg_color)};`;
+      if (b.active_text_color)   css += `color:${buttonColorValue(b.active_text_color)};`;
+      if (b.active_border_color) css += `border-color:${buttonColorValue(b.active_border_color)};`;
       css += `}`;
     }
-    css += `\n${cls}:disabled,${cls}[aria-disabled="true"]{opacity:${b.disabled_opacity||'0.4'};cursor:not-allowed;pointer-events:none;}`;
+    css += `\n${cls}:disabled,${cls}[aria-disabled="true"]{opacity:${b.disabled_opacity||'0.4'};cursor:not-allowed;pointer-events:none;`;
+    if (b.disabled_bg_color)     css += `background:${buttonColorValue(b.disabled_bg_color)};`;
+    if (b.disabled_text_color)   css += `color:${buttonColorValue(b.disabled_text_color)};`;
+    if (b.disabled_border_color) css += `border-color:${buttonColorValue(b.disabled_border_color)};`;
+    css += '}';
   }
   return css;
 }

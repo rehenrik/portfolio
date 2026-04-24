@@ -1234,11 +1234,9 @@
 
     /* ── Global Buttons Panel ───────────────────────────────── */
     .ts-color-ctrl { display: flex; align-items: center; gap: 6px; }
-    .ts-color-text { flex: 1; min-width: 0; }
-    /* Color swatch trigger button */
-    .cpk-swatch-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; flex-shrink: 0; padding: 0; position: relative; background: repeating-conic-gradient(#555 0% 25%, #333 0% 50%) 0 0/8px 8px; transition: transform 0.12s, border-color 0.12s; }
-    .cpk-swatch-btn:hover { transform: scale(1.1); border-color: rgba(255,255,255,0.35); }
-    .cpk-swatch-btn::after { content: ''; position: absolute; inset: 0; border-radius: 5px; background: var(--swatch-clr, transparent); }
+    .token-select-wrap { display: grid; grid-template-columns: 18px 1fr; gap: 7px; align-items: center; }
+    .token-select-swatch { width: 18px; height: 18px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.14); background: transparent; }
+    .token-select { width: 100%; min-width: 0; }
     /* Color picker panel */
     .cpk-panel { position: fixed; z-index: 99999; background: #1c1c1f; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 12px; width: 216px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); display: none; flex-direction: column; gap: 8px; user-select: none; }
     .cpk-panel.open { display: flex; }
@@ -1284,6 +1282,11 @@
     .btn-preview-mini { pointer-events: none; user-select: none; border-style: solid; display: inline-flex; align-items: center; font-family: inherit; line-height: 1; white-space: nowrap; cursor: default; }
 
     /* ── Global Colors Panel ────────────────────────────────── */
+    .ds-block { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+    .ds-block-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .ds-block-title { font-size: 0.84rem; font-weight: 700; color: var(--fg); }
+    .ds-block-copy { font-size: 0.75rem; color: var(--fg-muted); margin-top: 4px; }
+    .ds-block-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
     .cf-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .cf-card-header { padding: 12px 16px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; }
     .cf-family-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--fg); }
@@ -1291,11 +1294,10 @@
     .cf-shades-row { padding: 16px 16px 12px; display: flex; gap: 8px; overflow-x: auto; background: var(--bg); scrollbar-width: thin; }
     .cf-shade-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
     .cf-shade-cell.base .cf-swatch-label { outline: 2px solid var(--fg); outline-offset: 2px; }
-    .cf-swatch-label { width: 44px; height: 44px; border-radius: 8px; cursor: pointer; display: block; border: 1px solid rgba(0,0,0,0.08); transition: transform 0.15s; }
+    .cf-swatch-label { width: 44px; height: 44px; border-radius: 8px; cursor: pointer; display: block; border: 1px solid rgba(0,0,0,0.08); transition: transform 0.15s; position: relative; }
     .cf-swatch-label:hover { transform: scale(1.1); }
     .cf-shade-num { font-size: 0.58rem; font-weight: 600; color: var(--fg-muted); }
     .cf-shade-hex { font-size: 0.55rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; letter-spacing: 0; }
-    .cf-color-input { width: 0; height: 0; padding: 0; border: none; opacity: 0; position: absolute; pointer-events: none; }
     .cf-card-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--surface); }
     .cf-gen-btn { font-size: 0.72rem; color: var(--fg-muted); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
     .cf-gen-btn:hover { background: var(--surface2); color: var(--fg); }
@@ -1675,24 +1677,42 @@
         </div>
         <p class="section-subtitle">Configure paletas e tokens semânticos do design system.</p>
 
-        <!-- Paleta de Cores -->
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px">
-            <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted)">Paleta de Cores</span>
+        <!-- Cores base -->
+        <div class="ds-block">
+          <div class="ds-block-head">
+            <div>
+              <div class="ds-block-title">Cores base</div>
+              <p class="ds-block-copy">Familias principais da marca. A cor 500 e a base usada para gerar a escala.</p>
+            </div>
             <button class="btn btn-sm" id="addFamilyBtn" style="font-size:0.75rem;padding:5px 12px">+ Nova família</button>
           </div>
-          <div id="colorFamiliesContainer" style="display:flex;flex-direction:column;gap:8px">
+          <div id="colorFamiliesContainer" class="ds-block-body">
             <div class="loading-row"><div class="spinner"></div>Carregando paleta…</div>
           </div>
         </div>
 
-        <!-- Tokens do Site -->
-        <div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
-          <div style="padding:0 2px">
-            <span style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--fg-muted)">Tokens do Site</span>
-            <p style="font-size:0.75rem;color:var(--fg-muted);margin-top:4px">Mapeia tokens de paleta para os elementos do site. Salvar recalcula o CSS automaticamente.</p>
+        <!-- Color Tokens -->
+        <div class="ds-block" style="margin-top:12px">
+          <div class="ds-block-head">
+            <div>
+              <div class="ds-block-title">Color Tokens</div>
+              <p class="ds-block-copy">Escalas reutilizaveis como Primary/50, Primary/500 e Primary/950. Edite qualquer token manualmente quando necessario.</p>
+            </div>
           </div>
-          <div id="colorAssignmentsContainer" style="display:flex;flex-direction:column;gap:8px">
+          <div class="ds-block-body" id="colorTokenPreviewContainer">
+            <div class="loading-row"><div class="spinner"></div>Carregando tokens...</div>
+          </div>
+        </div>
+
+        <!-- Tokens do Site -->
+        <div class="ds-block" style="margin-top:12px">
+          <div class="ds-block-head">
+            <div>
+              <div class="ds-block-title">Tokens do Site</div>
+              <p class="ds-block-copy">Mapeia tokens de escala para variaveis globais do site. Salvar recalcula o CSS automaticamente.</p>
+            </div>
+          </div>
+          <div id="colorAssignmentsContainer" class="ds-block-body">
             <div class="loading-row"><div class="spinner"></div>Carregando tokens…</div>
           </div>
         </div>
@@ -2981,6 +3001,33 @@ let colorFamilies    = [];
 let colorTokensData  = [];
 let colorAssignments = [];
 const ALL_SHADES     = [50,100,200,300,400,500,600,700,800,900,950];
+const LEGACY_COLOR_TOKEN_MAP = {
+  '#fe4311': 'primary-500',
+  '#d93600': 'primary-600',
+  '#d43a0e': 'primary-600',
+  '#b83209': 'primary-700',
+  '#6366f1': 'secondary-500',
+  '#4f52d4': 'secondary-600',
+  '#4346c0': 'secondary-700',
+  '#52525b': 'neutral-600',
+  '#3f3f46': 'neutral-700',
+  '#27272a': 'neutral-800',
+  '#09090b': 'neutral-950',
+  '#ffffff': 'neutral-50',
+  '#f4f4f5': 'neutral-50',
+  '#e4e4e7': 'neutral-100',
+  '#d4d4d8': 'neutral-200',
+  'rgba(254,67,17,0.08)': 'primary-50',
+  'rgba(254,67,17,0.15)': 'primary-100',
+  'rgba(99,102,241,0.08)': 'secondary-50',
+  'rgba(99,102,241,0.15)': 'secondary-100',
+  'rgba(82,82,91,0.08)': 'neutral-100',
+  'rgba(82,82,91,0.15)': 'neutral-200',
+  'rgba(9,9,11,0.06)': 'neutral-100',
+  'rgba(9,9,11,0.12)': 'neutral-200',
+  'rgba(244,244,245,0.1)': 'neutral-100',
+  'rgba(244,244,245,0.2)': 'neutral-200',
+};
 
 function invalidateColorCache() {
   try { localStorage.removeItem('color_css_v1'); } catch (_) {}
@@ -3043,10 +3090,33 @@ function generateColorScale(baseHex) {
 // ── Resolve token string → hex (from current in-memory data) ──
 function resolveToken(tokenStr) {
   if (!tokenStr) return '';
+  tokenStr = String(tokenStr).replace(/^var\(--/, '').replace(/\)$/, '').replace('/', '-');
   const [fam, shade] = tokenStr.split('-');
   const shadeNum = parseInt(shade);
   const tok = colorTokensData.find(t => t.family_name === fam && t.shade === shadeNum);
   return tok ? tok.value : '';
+}
+
+function normalizeTokenValue(value) {
+  if (!value || value === 'transparent') return '';
+  const clean = String(value).trim().replace(/^var\(--/, '').replace(/\)$/, '').replace('/', '-');
+  if (resolveToken(clean)) return clean;
+  if (LEGACY_COLOR_TOKEN_MAP[clean.toLowerCase()]) return LEGACY_COLOR_TOKEN_MAP[clean.toLowerCase()];
+  const byHex = colorTokensData.find(t => (t.value || '').toLowerCase() === clean.toLowerCase());
+  return byHex ? `${byHex.family_name}-${byHex.shade}` : '';
+}
+
+function tokenLabel(tokenStr) {
+  if (!tokenStr) return 'Sem token';
+  const [famName, shade] = tokenStr.replace('/', '-').split('-');
+  const fam = colorFamilies.find(f => f.name === famName);
+  return `${fam ? fam.label : famName} / ${shade}`;
+}
+
+function buttonCssColor(value, fallback = 'transparent') {
+  const token = normalizeTokenValue(value);
+  if (token) return resolveToken(token) || fallback;
+  return value || fallback;
 }
 
 // ── Family card ─────────────────────────────────────────────
@@ -3073,9 +3143,7 @@ function buildFamilyCard(family) {
 
   const shadesHTML = ALL_SHADES.map(shade => `
     <div class="cf-shade-cell${shade===500?' base':''}">
-      <label class="cf-swatch-label" style="background:${localVals[shade]}" title="${shade}">
-        <input type="color" class="cf-color-input" data-shade="${shade}" value="${localVals[shade]}">
-      </label>
+      <button type="button" class="cf-swatch-label cf-color-input" style="background:${localVals[shade]}" title="${family.label} / ${shade}" data-shade="${shade}"></button>
       ${shade===500 ? '<span class="cf-base-badge">Base</span>' : ''}
       <span class="cf-shade-num">${shade}</span>
       <span class="cf-shade-hex">${localVals[shade]}</span>
@@ -3095,12 +3163,28 @@ function buildFamilyCard(family) {
   // Wire color inputs
   card.querySelectorAll('.cf-color-input').forEach(input => {
     const shade = parseInt(input.dataset.shade);
-    const swatchLabel = input.closest('.cf-swatch-label');
     const hexSpan = input.closest('.cf-shade-cell').querySelector('.cf-shade-hex');
-    input.addEventListener('input', () => {
-      const v = input.value;
+    input.addEventListener('click', e => {
+      e.stopPropagation();
+      window.colorPicker.open(input, localVals[shade], hex => {
+        if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+        const v = hex;
+        localVals[shade] = v;
+        input.style.background = v;
+        hexSpan.textContent = v;
+        card.classList.add('dirty');
+      });
+    });
+  });
+
+  card.querySelectorAll('.cf-shade-hex').forEach(hexSpan => {
+    hexSpan.addEventListener('dblclick', () => {
+      const shade = parseInt(hexSpan.closest('.cf-shade-cell').querySelector('.cf-color-input').dataset.shade);
+      const next = prompt(`Valor HEX para ${family.label} / ${shade}:`, localVals[shade]);
+      if (!next || !/^#[0-9a-fA-F]{6}$/.test(next)) return;
+      const v = next;
       localVals[shade] = v;
-      swatchLabel.style.background = v;
+      hexSpan.closest('.cf-shade-cell').querySelector('.cf-color-input').style.background = v;
       hexSpan.textContent = v;
       card.classList.add('dirty');
     });
@@ -3114,8 +3198,7 @@ function buildFamilyCard(family) {
       localVals[shade] = scale[i];
       const cell = card.querySelector(`.cf-color-input[data-shade="${shade}"]`);
       if (!cell) return;
-      cell.value = scale[i];
-      cell.closest('.cf-swatch-label').style.background = scale[i];
+      cell.style.background = scale[i];
       cell.closest('.cf-shade-cell').querySelector('.cf-shade-hex').textContent = scale[i];
     });
     card.classList.add('dirty');
@@ -3168,7 +3251,9 @@ function buildFamilyCard(family) {
       });
       invalidateColorCache();
       card.classList.remove('dirty');
+      renderTokenPreview();
       renderAssignments();
+      renderButtonStyles();
       toast(`"${family.label}" salva`, 'success');
     } catch (e) { toast('Erro: ' + e.message, 'error'); }
   });
@@ -3187,6 +3272,37 @@ function renderFamilies() {
 }
 
 // ── Assignments ─────────────────────────────────────────────
+function renderTokenPreview() {
+  const container = document.getElementById('colorTokenPreviewContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  if (!colorFamilies.length) {
+    container.innerHTML = '<p style="color:var(--fg-muted);font-size:0.85rem">Nenhuma familia de tokens cadastrada.</p>';
+    return;
+  }
+  colorFamilies.forEach(fam => {
+    const card = document.createElement('div');
+    card.className = 'cf-card';
+    const tokens = ALL_SHADES.map(shade => {
+      const value = resolveToken(`${fam.name}-${shade}`) || '#888888';
+      return `
+        <div class="cf-shade-cell${shade===500?' base':''}">
+          <span class="cf-swatch-label" style="background:${value}" title="${esc(fam.label)} / ${shade}"></span>
+          ${shade===500 ? '<span class="cf-base-badge">Base</span>' : ''}
+          <span class="cf-shade-num">${esc(fam.label)}/${shade}</span>
+          <span class="cf-shade-hex">${value}</span>
+        </div>`;
+    }).join('');
+    card.innerHTML = `
+      <div class="cf-card-header">
+        <span class="cf-family-label">${esc(fam.label)}</span>
+        <span style="font-size:0.72rem;color:var(--fg-muted)">500 = cor principal</span>
+      </div>
+      <div class="cf-shades-row">${tokens}</div>`;
+    container.appendChild(card);
+  });
+}
+
 function buildTokenOptions(selected) {
   const none = `<option value="" ${!selected?'selected':''}>—</option>`;
   const groups = colorFamilies.map(fam => {
@@ -3286,6 +3402,7 @@ async function loadColors() {
     colorTokensData  = tokRes.data || [];
     colorAssignments = asgRes.data || [];
     renderFamilies();
+    renderTokenPreview();
     renderAssignments();
   } catch (e) {
     if (container) container.innerHTML = `<div class="error-msg">Erro ao carregar: ${e.message}</div>`;
@@ -3802,15 +3919,40 @@ function invalidateButtonCache() {
   try { localStorage.removeItem('button_css_v1'); } catch (_) {}
 }
 
+function getButtonStyleFallback(variant, color) {
+  const fallbackByColor = {
+    primary:   { main: 'primary-500', hover: 'primary-600', active: 'primary-700', text: 'neutral-50', subtle: 'primary-50' },
+    secondary: { main: 'secondary-500', hover: 'secondary-600', active: 'secondary-700', text: 'neutral-50', subtle: 'secondary-50' },
+    gray:      { main: 'neutral-600', hover: 'neutral-700', active: 'neutral-800', text: 'neutral-50', subtle: 'neutral-100' },
+    black:     { main: 'neutral-950', hover: 'neutral-800', active: 'neutral-700', text: 'neutral-50', subtle: 'neutral-100' },
+    white:     { main: 'neutral-50',  hover: 'neutral-100', active: 'neutral-200', text: 'neutral-950', subtle: 'neutral-100' },
+  }[color] || { main: 'primary-500', hover: 'primary-600', active: 'primary-700', text: 'neutral-50', subtle: 'primary-50' };
+
+  const base = { variant, color, border_width: '0px', hover_opacity: '', disabled_opacity: '0.4', disabled_bg_color: 'neutral-200', disabled_text_color: 'neutral-500', disabled_border_color: '' };
+  if (variant === 'contained') return { ...base, bg_color: fallbackByColor.main, text_color: fallbackByColor.text, border_color: '', hover_bg_color: fallbackByColor.hover, hover_text_color: '', hover_border_color: '', active_bg_color: fallbackByColor.active, active_text_color: '', active_border_color: '' };
+  if (variant === 'outline') return { ...base, bg_color: '', text_color: fallbackByColor.main, border_color: fallbackByColor.main, border_width: '1.5px', hover_bg_color: fallbackByColor.subtle, hover_text_color: fallbackByColor.hover, hover_border_color: fallbackByColor.hover, active_bg_color: fallbackByColor.subtle, active_text_color: fallbackByColor.active, active_border_color: fallbackByColor.active };
+  if (variant === 'link') return { ...base, bg_color: '', text_color: fallbackByColor.main, border_color: '', hover_bg_color: '', hover_text_color: fallbackByColor.hover, hover_border_color: '', active_bg_color: '', active_text_color: fallbackByColor.active, active_border_color: '' };
+  return { ...base, bg_color: '', text_color: fallbackByColor.main, border_color: '', hover_bg_color: fallbackByColor.subtle, hover_text_color: fallbackByColor.hover, hover_border_color: '', active_bg_color: fallbackByColor.subtle, active_text_color: fallbackByColor.active, active_border_color: '' };
+}
+
 async function loadButtons() {
   try {
     const client = await getClient();
-    const [sizesRes, stylesRes] = await Promise.all([
+    const requests = [
       client.from('button_sizes').select('*').order('sort_order', { ascending: true }),
       client.from('button_styles').select('*').order('sort_order', { ascending: true }),
-    ]);
+    ];
+    if (!colorFamilies.length || !colorTokensData.length) {
+      requests.push(client.from('color_families').select('*').order('sort_order'));
+      requests.push(client.from('color_tokens').select('*'));
+    }
+    const [sizesRes, stylesRes, famRes, tokRes] = await Promise.all(requests);
     if (sizesRes.error) throw sizesRes.error;
     if (stylesRes.error) throw stylesRes.error;
+    if (famRes && famRes.error) throw famRes.error;
+    if (tokRes && tokRes.error) throw tokRes.error;
+    if (famRes) colorFamilies = famRes.data || [];
+    if (tokRes) colorTokensData = tokRes.data || [];
     btnSizesData  = sizesRes.data  || [];
     btnStylesData = stylesRes.data || [];
     document.getElementById('btnCountBadge').textContent = btnStylesData.length;
@@ -3910,7 +4052,7 @@ function renderButtonStyles() {
   panelsEl.innerHTML = BTN_VARIANTS.map((v, i) => {
     const styles = BTN_COLORS.map(c => {
       const found = btnStylesData.find(s => s.variant === v.key && s.color === c.key);
-      return found || { variant: v.key, color: c.key, bg_color:'transparent', text_color:'#000000', border_color:'transparent', border_width:'0px', hover_bg_color:'', hover_text_color:'', hover_border_color:'', hover_opacity:'', active_bg_color:'', active_text_color:'', active_border_color:'', disabled_opacity:'0.4' };
+      return found || getButtonStyleFallback(v.key, c.key);
     });
     return `<div class="btn-variant-panel${i===0?' active':''}" data-variant="${v.key}" style="display:${i===0?'flex':'none'};flex-direction:column;gap:8px" id="bvp-${v.key}"></div>`;
   }).join('');
@@ -3918,7 +4060,7 @@ function renderButtonStyles() {
   BTN_VARIANTS.forEach(v => {
     const panel = document.getElementById(`bvp-${v.key}`);
     BTN_COLORS.forEach((c, ci) => {
-      const found = btnStylesData.find(s => s.variant === v.key && s.color === c.key) || { variant: v.key, color: c.key };
+      const found = btnStylesData.find(s => s.variant === v.key && s.color === c.key) || getButtonStyleFallback(v.key, c.key);
       panel.appendChild(buildButtonStyleCard(found, ci === 0));
     });
   });
@@ -3946,18 +4088,20 @@ function buildButtonStyleCard(style, isOpen = false) {
   const colorMeta = BTN_COLORS.find(c => c.key === local.color) || { label: local.color, swatch: '#999' };
 
   function buildPreviewStyle() {
-    return `background:${local.bg_color||'transparent'};color:${local.text_color||'#000'};border-color:${local.border_color||'transparent'};border-width:${local.border_width||'0px'};padding:6px 14px;font-size:13px;border-radius:6px;font-family:inherit;line-height:1;white-space:nowrap;`;
+    return `background:${buttonCssColor(local.bg_color)};color:${buttonCssColor(local.text_color, '#000')};border-color:${buttonCssColor(local.border_color)};border-width:${local.border_width||'0px'};padding:6px 14px;font-size:13px;border-radius:6px;font-family:inherit;line-height:1;white-space:nowrap;`;
   }
 
-  function colorRow(field, label, fallback) {
-    const val = local[field] || '';
-    const isHex = /^#[0-9a-fA-F]{6}$/.test(val);
-    const swatchClr = isHex ? val : '';
+  function colorRow(field, label) {
+    const val = normalizeTokenValue(local[field]);
+    local[field] = val;
+    const swatchClr = resolveToken(val) || 'transparent';
     return `<div class="ts-ctrl">
       <span class="ts-ctrl-label">${label}</span>
-      <div class="ts-color-ctrl">
-        <button class="cpk-swatch-btn" data-field="${field}" style="--swatch-clr:${swatchClr}" title="Escolher cor"></button>
-        <input type="text" class="field ts-color-text" data-field="${field}" value="${esc(val)}" placeholder="${fallback||'transparent'}">
+      <div class="token-select-wrap">
+        <span class="token-select-swatch" data-swatch-for="${field}" style="background:${swatchClr}"></span>
+        <select class="field token-select" data-field="${field}">
+          ${buildTokenOptions(val)}
+        </select>
       </div>
     </div>`;
   }
@@ -4013,7 +4157,12 @@ function buildButtonStyleCard(style, isOpen = false) {
           </div>
         </div>
         <div class="btn-style-state-panel" data-state="disabled">
-          <div class="ts-controls-row cols-1">
+          <div class="ts-controls-row cols-2">
+            ${colorRow('disabled_bg_color',    'Background')}
+            ${colorRow('disabled_text_color',  'Text Color')}
+          </div>
+          <div class="ts-controls-row cols-2">
+            ${colorRow('disabled_border_color','Border Color')}
             ${textRow('disabled_opacity','Opacity','0.4')}
           </div>
         </div>
@@ -4038,36 +4187,19 @@ function buildButtonStyleCard(style, isOpen = false) {
     });
   });
 
-  // color picker swatch open
-  card.querySelectorAll('.cpk-swatch-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const field = btn.dataset.field;
-      const textInput = card.querySelector(`.ts-color-text[data-field="${field}"]`);
-      window.colorPicker.open(btn, local[field] || '', hex => {
-        if (textInput) textInput.value = hex;
-        btn.style.setProperty('--swatch-clr', /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '');
-        local[field] = hex;
-        markDirtyStyle();
-      });
-    });
-  });
-
-  // text input → sync swatch + local
-  card.querySelectorAll('.ts-color-text').forEach(textInput => {
-    const field = textInput.dataset.field;
-    const btn = card.querySelector(`.cpk-swatch-btn[data-field="${field}"]`);
-    textInput.addEventListener('input', () => {
-      const v = textInput.value.trim();
-      if (btn) btn.style.setProperty('--swatch-clr', /^#[0-9a-fA-F]{6}$/.test(v) ? v : '');
-      local[field] = v;
+  card.querySelectorAll('.token-select').forEach(select => {
+    select.addEventListener('change', () => {
+      const field = select.dataset.field;
+      local[field] = select.value;
+      const swatch = card.querySelector(`[data-swatch-for="${field}"]`);
+      if (swatch) swatch.style.background = resolveToken(select.value) || 'transparent';
       markDirtyStyle();
     });
   });
 
   // other data-field inputs
   card.querySelectorAll('[data-field]').forEach(el => {
-    if (el.classList.contains('cpk-swatch-btn') || el.classList.contains('ts-color-text')) return;
+    if (el.classList.contains('token-select')) return;
     el.addEventListener('input', () => { local[el.dataset.field] = el.value; markDirtyStyle(); });
   });
 
@@ -4097,6 +4229,8 @@ async function saveButtonStyle(local, styleRef, card) {
       hover_border_color: local.hover_border_color, hover_opacity: local.hover_opacity,
       active_bg_color: local.active_bg_color, active_text_color: local.active_text_color,
       active_border_color: local.active_border_color,
+      disabled_bg_color: local.disabled_bg_color, disabled_text_color: local.disabled_text_color,
+      disabled_border_color: local.disabled_border_color,
       disabled_opacity: local.disabled_opacity,
     };
     let error;

@@ -587,9 +587,16 @@ create table if not exists public.button_styles (
   active_text_color   text default '',
   active_border_color text default '',
   -- Disabled state
+  disabled_bg_color     text default '',
+  disabled_text_color   text default '',
+  disabled_border_color text default '',
   disabled_opacity    text default '0.4',
   created_at          timestamptz default now()
 );
+
+alter table public.button_styles add column if not exists disabled_bg_color text default '';
+alter table public.button_styles add column if not exists disabled_text_color text default '';
+alter table public.button_styles add column if not exists disabled_border_color text default '';
 
 alter table public.button_styles enable row level security;
 create policy "Public reads button_styles"  on public.button_styles for select using (true);
@@ -627,3 +634,95 @@ values
   ('text',     'black',    19, 'transparent','#09090b','transparent','0px', 'rgba(9,9,11,0.06)','','','', 'rgba(9,9,11,0.12)','','', '0.4'),
   ('text',     'white',    20, 'transparent','#f4f4f5','transparent','0px', 'rgba(244,244,245,0.1)','','','', 'rgba(244,244,245,0.2)','','', '0.4')
 on conflict (variant, color) do nothing;
+
+-- Migration: button colors now store Design System color token keys.
+-- The public CSS builder resolves these values to var(--family-shade).
+update public.button_styles set
+  bg_color = case
+    when variant = 'contained' and color = 'primary' then 'primary-500'
+    when variant = 'contained' and color = 'secondary' then 'secondary-500'
+    when variant = 'contained' and color = 'gray' then 'neutral-600'
+    when variant = 'contained' and color = 'black' then 'neutral-950'
+    when variant = 'contained' and color = 'white' then 'neutral-50'
+    when bg_color = 'transparent' then ''
+    else bg_color
+  end,
+  text_color = case
+    when color in ('primary','secondary','gray','black') and variant = 'contained' then 'neutral-50'
+    when color = 'white' and variant = 'contained' then 'neutral-950'
+    when color = 'primary' then 'primary-500'
+    when color = 'secondary' then 'secondary-500'
+    when color = 'gray' then 'neutral-600'
+    when color = 'black' then 'neutral-950'
+    when color = 'white' then 'neutral-50'
+    else text_color
+  end,
+  border_color = case
+    when border_color = 'transparent' then ''
+    when color = 'primary' then 'primary-500'
+    when color = 'secondary' then 'secondary-500'
+    when color = 'gray' then 'neutral-600'
+    when color = 'black' then 'neutral-950'
+    when color = 'white' then 'neutral-50'
+    else border_color
+  end,
+  hover_bg_color = case
+    when variant = 'contained' and color = 'primary' then 'primary-600'
+    when variant = 'contained' and color = 'secondary' then 'secondary-600'
+    when variant = 'contained' and color = 'gray' then 'neutral-700'
+    when variant = 'contained' and color = 'black' then 'neutral-800'
+    when variant = 'contained' and color = 'white' then 'neutral-100'
+    when variant in ('outline','text') and color = 'primary' then 'primary-50'
+    when variant in ('outline','text') and color = 'secondary' then 'secondary-50'
+    when variant in ('outline','text') then 'neutral-100'
+    else ''
+  end,
+  hover_text_color = case
+    when hover_text_color = '' then ''
+    when color = 'primary' then 'primary-700'
+    when color = 'secondary' then 'secondary-700'
+    when color in ('gray','black') then 'neutral-800'
+    when color = 'white' then 'neutral-200'
+    else hover_text_color
+  end,
+  hover_border_color = case
+    when hover_border_color = 'transparent' then ''
+    when color = 'primary' then 'primary-600'
+    when color = 'secondary' then 'secondary-600'
+    when color = 'gray' then 'neutral-700'
+    when color = 'black' then 'neutral-800'
+    when color = 'white' then 'neutral-100'
+    else hover_border_color
+  end,
+  active_bg_color = case
+    when variant = 'contained' and color = 'primary' then 'primary-700'
+    when variant = 'contained' and color = 'secondary' then 'secondary-700'
+    when variant = 'contained' and color = 'gray' then 'neutral-800'
+    when variant = 'contained' and color = 'black' then 'neutral-700'
+    when variant = 'contained' and color = 'white' then 'neutral-200'
+    when variant in ('outline','text') and color = 'primary' then 'primary-100'
+    when variant in ('outline','text') and color = 'secondary' then 'secondary-100'
+    when variant in ('outline','text') then 'neutral-200'
+    else ''
+  end,
+  active_text_color = case
+    when active_text_color = '' then ''
+    when color = 'primary' then 'primary-600'
+    when color = 'secondary' then 'secondary-600'
+    when color in ('gray','black') then 'neutral-700'
+    when color = 'white' then 'neutral-300'
+    else active_text_color
+  end,
+  active_border_color = case
+    when active_border_color = 'transparent' then ''
+    when color = 'primary' then 'primary-700'
+    when color = 'secondary' then 'secondary-700'
+    when color = 'gray' then 'neutral-800'
+    when color = 'black' then 'neutral-700'
+    when color = 'white' then 'neutral-200'
+    else active_border_color
+  end,
+  disabled_bg_color = 'neutral-200',
+  disabled_text_color = 'neutral-500',
+  disabled_border_color = ''
+where true;
