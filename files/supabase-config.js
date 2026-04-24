@@ -179,7 +179,9 @@ function buildTypeStylesCSS(fonts, styles) {
   // @font-face + CSS vars (reuse existing font logic)
   const faceRules = [];
   const roleToFamily = {};
+  const fontById = {};
   for (const f of (fonts || [])) {
+    if (f.id) fontById[f.id] = f;
     const srcs = [];
     if (f.woff2_url) srcs.push(`url("${f.woff2_url}") format("woff2")`);
     if (f.woff_url)  srcs.push(`url("${f.woff_url}") format("woff")`);
@@ -201,8 +203,11 @@ function buildTypeStylesCSS(fonts, styles) {
 
   for (const s of (styles || [])) {
     if (!s.css_targets) continue;
-    const t   = s.css_targets;
-    const fam = s.font_role === 'serif' ? 'var(--serif)' : s.font_role === 'mono' ? 'var(--mono)' : 'var(--sans)';
+    const t = `${s.css_targets},.type-${s.name}`;
+    const linkedFont = s.font_id ? fontById[s.font_id] : null;
+    const fam = linkedFont
+      ? `"${linkedFont.family_name}",${linkedFont.role === 'serif' ? 'Georgia,serif' : linkedFont.role === 'mono' ? 'ui-monospace,monospace' : 'system-ui,sans-serif'}`
+      : s.font_role === 'serif' ? 'var(--serif)' : s.font_role === 'mono' ? 'var(--mono)' : 'var(--sans)';
     css += `\n${t}{font-family:${fam};font-weight:${s.font_weight||'400'};font-size:${s.font_size||'1rem'};` +
            `line-height:${s.line_height||'1.5'};letter-spacing:${s.letter_spacing||'0'};text-transform:${s.text_transform||'none'};}`;
 
@@ -267,11 +272,14 @@ function applySiteContent(items) {
   if (!Array.isArray(items)) return;
   const map = {};
   items.forEach(item => {
-    map[`${item.page}__${item.section}__${item.field_key}`] = item.value;
+    map[`${item.page}__${item.section}__${item.field_key}`] = item;
   });
   document.querySelectorAll('[data-content]').forEach(el => {
-    const val = map[el.dataset.content];
-    if (val !== undefined) el.innerHTML = parseInlineMarkdown(val);
+    const item = map[el.dataset.content];
+    if (!item) return;
+    el.innerHTML = parseInlineMarkdown(item.value);
+    [...el.classList].forEach(cls => { if (cls.startsWith('type-')) el.classList.remove(cls); });
+    if (item.type_style_name) el.classList.add(`type-${item.type_style_name}`);
   });
 }
 

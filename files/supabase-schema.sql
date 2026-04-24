@@ -154,10 +154,13 @@ create table if not exists public.site_content (
   field_label  text not null,
   field_type   text default 'text', -- 'text' | 'textarea'
   value        text not null default '',
+  type_style_name text default '',
   sort_order   int  default 0,
   updated_at   timestamptz default now(),
   unique (page, section, field_key)
 );
+
+alter table public.site_content add column if not exists type_style_name text default '';
 
 alter table public.site_content enable row level security;
 
@@ -166,6 +169,12 @@ create policy "Public can read site_content"
 
 create policy "Anon can update site_content"
   on public.site_content for update using (true) with check (true);
+
+create policy "Anon can insert site_content"
+  on public.site_content for insert with check (true);
+
+create policy "Anon can delete site_content"
+  on public.site_content for delete using (true);
 
 -- Seed: current static text from index.html (Home page)
 insert into public.site_content (page, section, component, field_key, field_label, field_type, value, sort_order) values
@@ -234,6 +243,7 @@ create table if not exists public.type_styles (
   name                text not null unique,
   label               text not null,
   css_targets         text not null,
+  font_id             uuid references public.fonts(id) on delete set null,
   font_role           text not null default 'sans' check (font_role in ('serif','sans','mono')),
   font_weight         text default '400',
   font_size           text default '1rem',
@@ -247,6 +257,8 @@ create table if not exists public.type_styles (
   sort_order          int  default 0,
   updated_at          timestamptz default now()
 );
+
+alter table public.type_styles add column if not exists font_id uuid references public.fonts(id) on delete set null;
 
 alter table public.type_styles enable row level security;
 
@@ -272,6 +284,28 @@ values
   ('button',          'Button',          '.btn',           'sans',  '500', '0.875rem',                     '',                              '',         '1',       '',    '',    '0.02em',  'uppercase', 10),
   ('link',            'Link',            'a',              'sans',  '400', 'inherit',                      '',                              '',         'inherit', '',    '',    '0',       'none',      11)
 on conflict (name) do nothing;
+
+-- Migration: map existing content fields to global typography styles.
+update public.site_content
+set type_style_name = case
+  when component = 'heading' and field_key like 'h1%' then 'h1'
+  when component = 'heading' and field_key like 'h2%' then 'h2'
+  when component = 'heading' then 'h3'
+  when component = 'cta' then 'button'
+  when field_key ilike '%subtitle%' or field_key ilike '%intro%' or field_key ilike '%description%' then 'paragraph-large'
+  else 'paragraph'
+end
+where coalesce(type_style_name, '') = '';
+
+-- Migration: connect typography styles to uploaded fonts by their existing role.
+update public.type_styles ts
+set font_id = f.id
+from (
+  select distinct on (role) id, role
+  from public.fonts
+  order by role, created_at asc
+) f
+where ts.font_id is null and ts.font_role = f.role;
 
 -- ============================================================
 -- GLOBAL COLORS — Design System de Cores

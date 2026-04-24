@@ -1371,6 +1371,8 @@
       gap: 8px;
     }
 
+    .content-section-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+
     .content-section-chevron { transition: transform 0.2s; flex-shrink: 0; }
     .content-section-card.open .content-section-chevron { transform: rotate(180deg); }
 
@@ -1384,11 +1386,20 @@
 
     .content-field-row {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 22px minmax(0, 1fr) 220px auto;
       gap: 12px;
       padding: 14px 16px;
       align-items: start;
     }
+
+    .content-drag-handle {
+      color: var(--fg-muted);
+      cursor: grab;
+      padding-top: 28px;
+      opacity: 0.65;
+    }
+
+    .content-field-row.drag-over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
 
     .content-field-row:not(:last-child) { border-bottom: 1px solid var(--border); }
 
@@ -1443,7 +1454,13 @@
       align-items: flex-end;
       padding-top: 22px;
       flex-shrink: 0;
+      gap: 6px;
     }
+
+    .content-style-panel { display: flex; flex-direction: column; gap: 7px; padding-top: 20px; }
+    .content-style-select { width: 100%; }
+    .content-preview-box { border: 1px dashed var(--border); border-radius: 6px; padding: 9px; background: var(--bg); color: var(--fg); min-height: 38px; word-break: break-word; }
+    .content-row-tools { display: flex; gap: 4px; }
 
     .content-save-btn:disabled { opacity: 0.35; cursor: default; }
     .content-save-btn:disabled:hover { opacity: 0.35; }
@@ -1527,6 +1544,7 @@
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
             Home
           </button>
+          <button class="btn btn-sm" id="addContentBlockBtn" style="margin-left:auto">+ Novo bloco</button>
         </div>
 
         <div id="siteContentSections" style="display:flex;flex-direction:column;gap:8px">
@@ -2751,8 +2769,29 @@ const TS_TRANSFORM_OPTIONS = [
   { value: 'capitalize', label: 'Capitalize' },
 ];
 
-const TS_ROLE_LABELS = { serif: 'Serif', sans: 'Sans-serif', mono: 'Mono' };
 const TS_PREVIEW_TEXT = 'The quick brown fox jumps over the lazy dog';
+
+function fontFallback(role) {
+  return role === 'serif' ? 'Georgia, serif'
+       : role === 'mono'  ? 'ui-monospace, monospace'
+       : 'system-ui, sans-serif';
+}
+
+function getFontById(id) {
+  return fonts.find(f => f.id === id) || null;
+}
+
+function getStyleFont(style) {
+  return getFontById(style.font_id) || fonts.find(f => f.role === style.font_role) || null;
+}
+
+function buildFontOptions(selectedId, selectedRole) {
+  if (!fonts.length) return '<option value="">Cadastre fontes em Arquivos de Fonte</option>';
+  return fonts.map(f => {
+    const selected = selectedId ? f.id === selectedId : f.role === selectedRole;
+    return `<option value="${f.id}"${selected?' selected':''}>${esc(f.family_name)} (${esc(f.role)})</option>`;
+  }).join('');
+}
 
 async function loadTypography() {
   const container = document.getElementById('typeStylesContainer');
@@ -2761,13 +2800,16 @@ async function loadTypography() {
   container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando estilos…</div>';
   try {
     const client = await getClient();
-    const { data, error } = await client
-      .from('type_styles')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    if (error) throw error;
-    typeStyles = data || [];
+    const [stylesRes, fontsRes] = await Promise.all([
+      client.from('type_styles').select('*').order('sort_order', { ascending: true }),
+      client.from('fonts').select('*').order('created_at', { ascending: true }),
+    ]);
+    if (stylesRes.error) throw stylesRes.error;
+    if (fontsRes.error) throw fontsRes.error;
+    typeStyles = stylesRes.data || [];
+    fonts = fontsRes.data || [];
     if (badge) badge.textContent = typeStyles.length;
+    injectAdminTypeStyleCSS();
     renderTypeStyles();
   } catch (err) {
     container.innerHTML = `<div class="error-msg" style="display:block;padding:1rem">Erro: ${esc(err.message)}</div>`;
@@ -2778,6 +2820,13 @@ function renderTypeStyles() {
   const container = document.getElementById('typeStylesContainer');
   if (!container) return;
   container.innerHTML = '';
+  if (!fonts.length) {
+    container.innerHTML = `
+      <div style="padding:1rem;border:1px dashed var(--border);border-radius:10px;color:var(--fg-muted);background:var(--surface)">
+        Cadastre uma fonte em <strong>Arquivos de Fonte</strong> antes de editar os estilos tipograficos.
+      </div>`;
+    return;
+  }
   typeStyles.forEach((style, i) => {
     container.appendChild(buildTypeStyleCard(style, i === 0));
   });
@@ -2793,9 +2842,8 @@ function buildTypeStyleCard(style, isOpen) {
 
   // Build preview inline style string
   const previewStyle = () => {
-    const fam = local.font_role === 'serif' ? 'Georgia, serif'
-               : local.font_role === 'mono'  ? 'ui-monospace, monospace'
-               : 'system-ui, sans-serif';
+    const linkedFont = getStyleFont(local);
+    const fam = linkedFont ? `"${linkedFont.family_name}", ${fontFallback(linkedFont.role)}` : fontFallback(local.font_role);
     return `font-family:${fam};font-weight:${local.font_weight||'400'};` +
            `font-size:clamp(0.75rem,2vw,${local.font_size||'1rem'});` +
            `line-height:${local.line_height||'1.5'};` +
@@ -2822,10 +2870,8 @@ function buildTypeStyleCard(style, isOpen) {
         <div class="ts-controls-row cols-3">
           <div class="ts-ctrl">
             <span class="ts-ctrl-label">Fonte</span>
-            <select class="field" data-field="font_role">
-              ${['serif','sans','mono'].map(r =>
-                `<option value="${r}"${local.font_role===r?' selected':''}>${TS_ROLE_LABELS[r]}</option>`
-              ).join('')}
+            <select class="field" data-field="font_id">
+              ${buildFontOptions(local.font_id, local.font_role)}
             </select>
           </div>
           <div class="ts-ctrl">
@@ -2940,6 +2986,10 @@ function buildTypeStyleCard(style, isOpen) {
     });
     el.addEventListener('change', () => {
       local[el.dataset.field] = el.value;
+      if (el.dataset.field === 'font_id') {
+        const linkedFont = getFontById(el.value);
+        if (linkedFont) local.font_role = linkedFont.role;
+      }
       markDirty();
     });
   });
@@ -2959,6 +3009,7 @@ function buildTypeStyleCard(style, isOpen) {
       const { error } = await client
         .from('type_styles')
         .update({
+          font_id:            local.font_id || null,
           font_role:          local.font_role,
           font_weight:        local.font_weight,
           font_size:          local.font_size,
@@ -3595,6 +3646,7 @@ async function saveFont() {
     invalidateTypoCache();
     closeFontModal();
     await loadFonts();
+    await loadTypography();
   } catch (err) {
     toast('Error: ' + err.message, 'error');
   } finally {
@@ -3607,6 +3659,7 @@ async function saveFont() {
 //  SITE CONTENT
 // ══════════════════════════════════════════════════════════════
 let siteContentItems = [];
+let siteContentDragId = null;
 
 const SECTION_DISPLAY_LABELS = {
   hero:     'Hero',
@@ -3622,16 +3675,46 @@ async function loadSiteContent() {
   container.innerHTML = '<div class="loading-row"><div class="spinner"></div>Carregando conteúdos…</div>';
   try {
     const client = await getClient();
-    const { data, error } = await client
-      .from('site_content')
-      .select('*')
-      .order('sort_order', { ascending: true });
-    if (error) throw error;
-    siteContentItems = data || [];
+    const [contentRes, stylesRes, fontsRes] = await Promise.all([
+      client.from('site_content').select('*').order('sort_order', { ascending: true }),
+      client.from('type_styles').select('*').order('sort_order', { ascending: true }),
+      client.from('fonts').select('*').order('created_at', { ascending: true }),
+    ]);
+    if (contentRes.error) throw contentRes.error;
+    if (stylesRes && stylesRes.error) throw stylesRes.error;
+    if (fontsRes && fontsRes.error) throw fontsRes.error;
+    siteContentItems = contentRes.data || [];
+    typeStyles = stylesRes.data || [];
+    fonts = fontsRes.data || [];
+    injectAdminTypeStyleCSS();
     renderSiteContent(siteContentItems);
   } catch (err) {
     container.innerHTML = `<div class="error-msg" style="display:block;padding:1rem">Erro ao carregar: ${esc(err.message)}</div>`;
   }
+}
+
+function buildTypeStyleOptions(selected) {
+  const none = `<option value="" ${!selected?'selected':''}>Sem estilo</option>`;
+  return none + typeStyles.map(s => `<option value="${s.name}" ${selected===s.name?'selected':''}>${esc(s.label)}</option>`).join('');
+}
+
+function contentPreviewClass(styleName) {
+  return styleName ? `type-${styleName}` : '';
+}
+
+function injectAdminTypeStyleCSS() {
+  let el = document.getElementById('admin-type-style-preview-css');
+  if (!el) {
+    el = document.createElement('style');
+    el.id = 'admin-type-style-preview-css';
+    document.head.appendChild(el);
+  }
+  const css = typeStyles.map(s => {
+    const linkedFont = s.font_id ? getFontById(s.font_id) : fonts.find(f => f.role === s.font_role);
+    const fam = linkedFont ? `"${linkedFont.family_name}", ${fontFallback(linkedFont.role)}` : fontFallback(s.font_role);
+    return `.type-${s.name}{font-family:${fam};font-weight:${s.font_weight||'400'};font-size:${s.font_size||'1rem'};line-height:${s.line_height||'1.5'};letter-spacing:${s.letter_spacing||'0'};text-transform:${s.text_transform||'none'};}`;
+  }).join('\n');
+  el.textContent = css;
 }
 
 function renderSiteContent(items) {
@@ -3657,6 +3740,9 @@ function renderSiteContent(items) {
           ${esc(label)}
           <span class="count-badge">${fields.length}</span>
         </span>
+        <span class="content-section-actions">
+          <button class="btn btn-sm btn-ghost content-add-section-btn" data-section="${esc(sectionKey)}">+ Campo</button>
+        </span>
         <svg class="content-section-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--fg-muted)"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="content-section-body"></div>
@@ -3668,6 +3754,7 @@ function renderSiteContent(items) {
       const row = document.createElement('div');
       row.className = 'content-field-row';
       row.dataset.fieldId = field.id;
+      row.draggable = true;
 
       const badgeClass = field.component === 'heading' ? 'heading'
                        : field.component === 'cta'     ? 'cta'
@@ -3680,6 +3767,9 @@ function renderSiteContent(items) {
       const showHint   = field.component === 'heading' || field.component === 'cta';
 
       row.innerHTML = `
+        <div class="content-drag-handle" title="Reordenar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+        </div>
         <div>
           <div class="content-field-header">
             <span class="content-field-label">${esc(field.field_label)}</span>
@@ -3692,33 +3782,54 @@ function renderSiteContent(items) {
           }
           ${showHint ? '<p class="content-field-hint">Use *asteriscos* para itálico</p>' : ''}
         </div>
+        <div class="content-style-panel">
+          <label class="ts-ctrl-label">Estilo global</label>
+          <select class="field content-style-select">${buildTypeStyleOptions(field.type_style_name)}</select>
+          <div class="content-preview-box ${contentPreviewClass(field.type_style_name)}">${esc(field.value)}</div>
+        </div>
         <div class="content-field-actions">
           <button class="btn btn-primary btn-sm content-save-btn" disabled>Salvar</button>
+          <div class="content-row-tools">
+            <button class="btn btn-ghost btn-sm content-dup-btn" title="Duplicar">Duplicar</button>
+            <button class="btn btn-ghost btn-sm content-del-btn" title="Excluir" style="color:var(--danger)">Excluir</button>
+          </div>
         </div>
       `;
 
       const input   = row.querySelector('input, textarea');
+      const styleSelect = row.querySelector('.content-style-select');
+      const preview = row.querySelector('.content-preview-box');
       const saveBtn = row.querySelector('.content-save-btn');
       let   originalValue = field.value;
+      let   originalStyle = field.type_style_name || '';
 
-      input.addEventListener('input', () => {
-        const dirty = input.value !== originalValue;
+      function updateContentDirty() {
+        const dirty = input.value !== originalValue || styleSelect.value !== originalStyle;
         row.classList.toggle('dirty', dirty);
         saveBtn.disabled = !dirty;
-      });
+        preview.textContent = input.value;
+        preview.className = `content-preview-box ${contentPreviewClass(styleSelect.value)}`;
+      }
+
+      input.addEventListener('input', updateContentDirty);
+      styleSelect.addEventListener('change', updateContentDirty);
 
       saveBtn.addEventListener('click', async () => {
         const newValue = input.value;
+        const newStyle = styleSelect.value;
         saveBtn.disabled = true;
         saveBtn.textContent = '…';
         try {
           const client = await getClient();
           const { error } = await client
             .from('site_content')
-            .update({ value: newValue, updated_at: new Date().toISOString() })
+            .update({ value: newValue, type_style_name: newStyle, updated_at: new Date().toISOString() })
             .eq('id', field.id);
           if (error) throw error;
           originalValue = newValue;
+          originalStyle = newStyle;
+          field.value = newValue;
+          field.type_style_name = newStyle;
           row.classList.remove('dirty');
           saveBtn.textContent = 'Salvo ✓';
           toast('Texto atualizado', 'success');
@@ -3731,10 +3842,20 @@ function renderSiteContent(items) {
         }
       });
 
+      row.querySelector('.content-dup-btn').addEventListener('click', () => duplicateContentField(field));
+      row.querySelector('.content-del-btn').addEventListener('click', () => deleteContentField(field));
+      setupContentDrag(row, field);
+
       body.appendChild(row);
     });
 
-    card.querySelector('.content-section-header').addEventListener('click', () => {
+    card.querySelector('.content-add-section-btn').addEventListener('click', e => {
+      e.stopPropagation();
+      addContentField(sectionKey);
+    });
+
+    card.querySelector('.content-section-header').addEventListener('click', e => {
+      if (e.target.closest('button')) return;
       card.classList.toggle('open');
     });
 
@@ -3745,6 +3866,112 @@ function renderSiteContent(items) {
 // ══════════════════════════════════════════════════════════════
 //  COLOR PICKER SINGLETON
 // ══════════════════════════════════════════════════════════════
+async function addContentField(section = 'hero') {
+  const fieldLabel = prompt('Nome do campo:', 'Novo texto');
+  if (!fieldLabel) return;
+  const component = prompt('Componente (heading, paragraph, cta, label, helper):', 'paragraph') || 'paragraph';
+  const fieldType = component === 'paragraph' ? 'textarea' : 'text';
+  const page = 'home';
+  const keyBase = fieldLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'novo_texto';
+  const fieldKey = `${keyBase}_${Date.now().toString(36)}`;
+  const maxSort = siteContentItems.reduce((m, item) => Math.max(m, item.sort_order || 0), 0);
+  try {
+    const client = await getClient();
+    const payload = {
+      page, section, component,
+      field_key: fieldKey,
+      field_label: fieldLabel.trim(),
+      field_type: fieldType,
+      value: '',
+      type_style_name: component === 'heading' ? 'h2' : component === 'cta' ? 'button' : 'paragraph',
+      sort_order: maxSort + 1,
+    };
+    const { error } = await client.from('site_content').insert(payload);
+    if (error) throw error;
+    toast('Campo criado', 'success');
+    try { localStorage.removeItem('site_content_v1'); } catch (_) {}
+    await loadSiteContent();
+  } catch (err) { toast('Erro: ' + err.message, 'error'); }
+}
+
+async function duplicateContentField(field) {
+  try {
+    const client = await getClient();
+    const maxSort = siteContentItems.reduce((m, item) => Math.max(m, item.sort_order || 0), 0);
+    const payload = {
+      page: field.page,
+      section: field.section,
+      component: field.component,
+      field_key: `${field.field_key}_copy_${Date.now().toString(36)}`,
+      field_label: `${field.field_label} copia`,
+      field_type: field.field_type,
+      value: field.value,
+      type_style_name: field.type_style_name || '',
+      sort_order: maxSort + 1,
+    };
+    const { error } = await client.from('site_content').insert(payload);
+    if (error) throw error;
+    toast('Campo duplicado', 'success');
+    try { localStorage.removeItem('site_content_v1'); } catch (_) {}
+    await loadSiteContent();
+  } catch (err) { toast('Erro: ' + err.message, 'error'); }
+}
+
+async function deleteContentField(field) {
+  if (!confirm(`Excluir "${field.field_label}"?`)) return;
+  try {
+    const client = await getClient();
+    const { error } = await client.from('site_content').delete().eq('id', field.id);
+    if (error) throw error;
+    toast('Campo excluido', 'success');
+    try { localStorage.removeItem('site_content_v1'); } catch (_) {}
+    await loadSiteContent();
+  } catch (err) { toast('Erro: ' + err.message, 'error'); }
+}
+
+function setupContentDrag(row, field) {
+  row.addEventListener('dragstart', e => {
+    siteContentDragId = field.id;
+    e.dataTransfer.effectAllowed = 'move';
+    row.style.opacity = '0.5';
+  });
+  row.addEventListener('dragend', () => {
+    row.style.opacity = '';
+    document.querySelectorAll('.content-field-row').forEach(r => r.classList.remove('drag-over'));
+  });
+  row.addEventListener('dragover', e => {
+    e.preventDefault();
+    row.classList.add('drag-over');
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+  row.addEventListener('drop', async e => {
+    e.preventDefault();
+    row.classList.remove('drag-over');
+    if (!siteContentDragId || siteContentDragId === field.id) return;
+    const from = siteContentItems.findIndex(item => item.id === siteContentDragId);
+    const to = siteContentItems.findIndex(item => item.id === field.id);
+    if (from < 0 || to < 0) return;
+    const reordered = [...siteContentItems];
+    const [moved] = reordered.splice(from, 1);
+    reordered.splice(to, 0, moved);
+    siteContentItems = reordered.map((item, i) => ({ ...item, sort_order: i + 1 }));
+    renderSiteContent(siteContentItems);
+    try {
+      const client = await getClient();
+      await Promise.all(siteContentItems.map(item =>
+        client.from('site_content').update({ sort_order: item.sort_order }).eq('id', item.id)
+      ));
+      toast('Ordem salva', 'success');
+      try { localStorage.removeItem('site_content_v1'); } catch (_) {}
+    } catch (err) { toast('Erro: ' + err.message, 'error'); }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('addContentBlockBtn');
+  if (btn) btn.addEventListener('click', () => addContentField('hero'));
+});
+
 (function initColorPicker() {
   function hexToHsv(hex) {
     if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return [0, 0, 1];
